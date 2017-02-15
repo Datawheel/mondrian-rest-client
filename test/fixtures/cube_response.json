@@ -1,0 +1,231 @@
+{
+  "name": "exports",
+  "annotations": {
+  },
+  "dimensions": [
+    {
+      "name": "Date",
+      "caption": "Date",
+      "type": "time",
+      "annotations": {
+      },
+      "hierarchies": [
+        {
+          "name": "Date",
+          "has_all": true,
+          "all_member_name": "All Dates",
+          "levels": [
+            {
+              "name": "(All)",
+              "full_name": "[Date].[(All)]",
+              "caption": "(All)",
+              "depth": 0,
+              "annotations": {
+              }
+            },
+            {
+              "name": "Year",
+              "full_name": "[Date].[Year]",
+              "caption": "Year",
+              "depth": 1,
+              "annotations": {
+              }
+            },
+            {
+              "name": "Month",
+              "full_name": "[Date].[Month]",
+              "caption": "Month",
+              "depth": 2,
+              "annotations": {
+              }
+            },
+            {
+              "name": "Day",
+              "full_name": "[Date].[Day]",
+              "caption": "Day",
+              "depth": 3,
+              "annotations": {
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Destination Country",
+      "caption": "Country",
+      "type": "standard",
+      "annotations": {
+      },
+      "hierarchies": [
+        {
+          "name": "Destination Country",
+          "has_all": true,
+          "all_member_name": "All Destination Countrys",
+          "levels": [
+            {
+              "name": "(All)",
+              "full_name": "[Destination Country].[(All)]",
+              "caption": "(All)",
+              "depth": 0,
+              "annotations": {
+              }
+            },
+            {
+              "name": "Region",
+              "full_name": "[Destination Country].[Region]",
+              "caption": "Region",
+              "depth": 1,
+              "annotations": {
+              }
+            },
+            {
+              "name": "Subregion",
+              "full_name": "[Destination Country].[Subregion]",
+              "caption": "Subregion",
+              "depth": 2,
+              "annotations": {
+              }
+            },
+            {
+              "name": "Country",
+              "full_name": "[Destination Country].[Country]",
+              "caption": "Country",
+              "depth": 3,
+              "annotations": {
+                "es_caption": "Country ES"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Geography",
+      "caption": "Geography",
+      "type": "standard",
+      "annotations": {
+      },
+      "hierarchies": [
+        {
+          "name": "Geography",
+          "has_all": true,
+          "all_member_name": "All Geographys",
+          "levels": [
+            {
+              "name": "(All)",
+              "full_name": "[Geography].[(All)]",
+              "caption": "(All)",
+              "depth": 0,
+              "annotations": {
+              }
+            },
+            {
+              "name": "Region",
+              "full_name": "[Geography].[Region]",
+              "caption": "Region",
+              "depth": 1,
+              "annotations": {
+              }
+            },
+            {
+              "name": "Comuna",
+              "full_name": "[Geography].[Comuna]",
+              "caption": "Comuna",
+              "depth": 2,
+              "annotations": {
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Export HS",
+      "caption": "HS",
+      "type": "standard",
+      "annotations": {
+      },
+      "hierarchies": [
+        {
+          "name": "Export HS",
+          "has_all": true,
+          "all_member_name": "All Export HSs",
+          "levels": [
+            {
+              "name": "(All)",
+              "full_name": "[Export HS].[(All)]",
+              "caption": "(All)",
+              "depth": 0,
+              "annotations": {
+              }
+            },
+            {
+              "name": "HS0",
+              "full_name": "[Export HS].[HS0]",
+              "caption": "HS0",
+              "depth": 1,
+              "annotations": {
+              }
+            },
+            {
+              "name": "HS2",
+              "full_name": "[Export HS].[HS2]",
+              "caption": "HS2",
+              "depth": 2,
+              "annotations": {
+              }
+            },
+            {
+              "name": "HS4",
+              "full_name": "[Export HS].[HS4]",
+              "caption": "HS4",
+              "depth": 3,
+              "annotations": {
+              }
+            },
+            {
+              "name": "HS6",
+              "full_name": "[Export HS].[HS6]",
+              "caption": "HS6",
+              "depth": 4,
+              "annotations": {
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "measures": [
+    {
+      "name": "FOB US",
+      "caption": "FOB US",
+      "annotations": {
+      },
+      "full_name": "[Measures].[FOB US]"
+    },
+    {
+      "name": "RCA",
+      "caption": "RCA",
+      "annotations": {
+      },
+      "full_name": "[Measures].[RCA]"
+    },
+    {
+      "name": "Geo Rank",
+      "caption": "Geo Rank",
+      "annotations": {
+      },
+      "full_name": "[Measures].[Geo Rank]"
+    },
+    {
+      "name": "Geo Rank Across Time",
+      "caption": "Geo Rank Across Time",
+      "annotations": {
+        "description": "Rank of this geography across all its siblings, by time"
+      },
+      "full_name": "[Measures].[Geo Rank Across Time]"
+    }
+  ]
+}

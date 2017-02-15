@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+      "declaration": true,
+      "forceConsistentCasingInFileNames": true,
+      "module": "commonjs",
+      "noFallthroughCasesInSwitch": true,
+      "noImplicitReturns": true,
+      "outDir": "build/src",
+      "noImplicitAny": false,
+      "removeComments": false,
+      "sourceMap": true,
+      "target": "es6"
+    },
+    "include": [
+      "src/**/*"
+    ]
+}
