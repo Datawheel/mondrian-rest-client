@@ -21,18 +21,8 @@ export default class Client {
     }
 
     query(query: Query) {
-        const url = urljoin(this.api_base,
-            'cubes',
-            query.cube.name,
-            'aggregate',
-            `?${query.qs}`);
-
-        const reqConf: AxiosRequestConfig = {
-            headers: { 'Accept': 'application/x-jsonrecords' }
-        };
-
         return axios
-            .get(url, reqConf)
+            .get(urljoin(this.api_base, query.path()))
             .then((value) => {
                 return new Aggregation(value.data.data);
             });

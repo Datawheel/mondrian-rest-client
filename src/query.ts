@@ -24,20 +24,8 @@ export default class Query {
         this.cube = cube;
     }
 
-    drilldown(dimension: string, hierarchyOrLevel: string, level?: string) {
-        let lvl: Level;
-
-        if (!(dimension in this.cube.dimensionsByName)) {
-            throw new Error(`${dimension} does not exist in cube ${this.cube.name}`);
-        }
-        const dim = this.cube.dimensionsByName[dimension];
-
-        if (level == undefined) {
-            lvl = dim.hierarchies[0].getLevel(hierarchyOrLevel);
-        }
-        else {
-            lvl = dim.getHierarchy(hierarchyOrLevel).getLevel(level);
-        }
+    drilldown(...parts: string[]) {
+        const lvl = this.getLevel(...parts);
 
         if (this.drilldowns === undefined) {
             this.drilldowns = [lvl]
@@ -45,6 +33,7 @@ export default class Query {
         else {
             this.drilldowns.push(lvl);
         }
+
         return this;
     }
 
@@ -69,22 +58,24 @@ export default class Query {
         return this;
     }
 
-    property(property: string): Query {
+    property(...parts: string[]): Query {
+        const propFullName = this.getProperty(...parts);
         if (this.properties === undefined) {
-            this.properties = [property];
+            this.properties = [propFullName];
         }
         else {
-            this.properties.push(property);
+            this.properties.push(propFullName);
         }
         return this;
     }
 
-    caption(caption: string): Query {
+    caption(...parts: string[]): Query {
+        const propFullName = this.getProperty(...parts)
         if (this.captions === undefined) {
-            this.captions = [caption];
+            this.captions = [propFullName];
         }
         else {
-            this.captions.push(caption);
+            this.captions.push(propFullName);
         }
         return this;
     }
@@ -99,11 +90,11 @@ export default class Query {
 
     get qs(): string {
         const o = {
-            drilldown: this.drilldowns ? this.drilldowns.map((d) => d.fullName) : null,
+            drilldown: this.drilldowns ? this.drilldowns.map((d) => d.fullName) : undefined,
             cut: this.cuts,
-            measures: this.measures ? this.measures.map((m) => m.name) : null,
+            measures: this.measures ? this.measures.map((m) => m.name) : undefined,
             properties: this.properties,
-            captions: this.captions,
+            caption: this.captions,
             nonempty: this.options['nonempty'],
             distinct: this.options['distinct'],
             parents: this.options['parents'],
@@ -111,5 +102,39 @@ export default class Query {
         };
 
         return formurlencoded(o);
+    }
+
+    path(format?: string): string {
+        return `/cubes/${this.cube.name}/aggregate${format ? '.' + format : ''}?${this.qs}`;
+    }
+
+    private getLevel(...parts: string[]): Level {
+        let [dimension, hierarchyOrLevel, level] = parts;
+
+        if (!(dimension in this.cube.dimensionsByName)) {
+            throw new Error(`${dimension} does not exist in cube ${this.cube.name}`);
+        }
+        const dim = this.cube.dimensionsByName[dimension];
+
+        const lvl = level === undefined
+            ? dim.hierarchies[0].getLevel(hierarchyOrLevel)
+            : dim.getHierarchy(hierarchyOrLevel).getLevel(level);
+
+        return lvl;
+    }
+
+    private getProperty(...parts: string[]): string {
+        if (parts.length < 3) {
+            throw new Error("Property specification must be Dimension.(Hierarchy).Level.Property");
+        }
+
+        const pname = parts[parts.length - 1];
+        const level = this.getLevel(...parts.slice(0, parts.length - 1));
+
+        if (!level.hasProperty(pname)) {
+            throw new Error(`Property ${pname} does not exist in level ${level.fullName}`);
+        }
+
+        return `${level.fullName}.${pname}`;
     }
 }

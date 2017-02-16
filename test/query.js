@@ -34,13 +34,15 @@ describe('Query', function() {
                       Error);
     });
 
-    it('accepts one valid drilldown', function() {
+    it('accepts one valid drilldown and measures', function() {
         q = query
             .drilldown('Geography', 'Region')
             .measure('FOB US')
             .measure('RCA');
 
         assert.equal(querystring.parse(q.qs)['drilldown[]'], '[Geography].[Region]');
+
+        console.log(q.path('jsonrecords'));
     });
 
     it('rejects and invalid drilldown', function() {
@@ -49,5 +51,40 @@ describe('Query', function() {
                 .drilldown('Geography', 'Block')
         },
                       Error);
+    });
+});
+
+describe('Query with properties', function() {
+    let response, cube, query;
+    beforeEach(function() {
+        response = require('./fixtures/tax_data.json');
+        cube = Cube.fromJSON(response);
+        query = cube.query;
+    });
+
+    it('accepts a valid property', function() {
+        q = query.property('ISICrev4', 'Level 1', 'Level 1 ES');
+        assert.equal(querystring.parse(q.qs)['properties[]'], '[ISICrev4].[Level 1].Level 1 ES');
+    });
+
+    it('rejects an invalid property', function() {
+        assert.throws(function() {
+            query.property('ISICrev4', 'Level 1', 'No existe');
+        },
+                      Error);
+    })
+});
+
+describe('Query with caption', function() {
+    let response, cube, query;
+    beforeEach(function() {
+        response = require('./fixtures/tax_data.json');
+        cube = Cube.fromJSON(response);
+        query = cube.query;
+    });
+
+    it('accepts a valid caption', function() {
+        q = query.caption('ISICrev4', 'Level 1', 'Level 1 ES');
+        assert.equal(querystring.parse(q.qs)['caption[]'], '[ISICrev4].[Level 1].Level 1 ES');
     });
 });

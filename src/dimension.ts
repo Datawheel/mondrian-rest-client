@@ -1,23 +1,21 @@
 import { Annotations } from './annotations';
 
-export class Property {
-
-}
-
-// XXX TODO implement Properties
 export class Level {
     name: string;
     caption?: string;
     fullName: string;
     depth: number;
     annotations: Annotations = {};
+    properties: string[];
 
-    constructor(name: string, caption: string, fullName: string, depth: number, annotations: Annotations) {
+    constructor(name: string, caption: string, fullName: string,
+        depth: number, annotations: Annotations, properties: string[]) {
         this.name = name;
         this.caption = caption;
         this.fullName = fullName;
         this.depth = depth;
         this.annotations = annotations;
+        this.properties = properties;
     }
 
     static fromJSON(json: {}): Level {
@@ -25,8 +23,13 @@ export class Level {
             json['caption'],
             json['full_name'],
             json['depth'],
-            json['annotations']);
+            json['annotations'],
+            json['properties']);
         return l;
+    }
+
+    hasProperty(propertyName: string): boolean {
+        return this.properties.indexOf(propertyName) !== -1;
     }
 }
 
