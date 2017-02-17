@@ -3,7 +3,7 @@ let assert = require('assert');
 
 XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 
-let mrc = require(path.join(__dirname, '..', 'mondrian-rest'));
+let mrc = require(path.join(__dirname, '..', 'lib', 'mondrian-rest'));
 let Client = mrc.Client;
 
 describe('Cube', function() {

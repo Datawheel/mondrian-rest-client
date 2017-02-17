@@ -1,7 +1,7 @@
 let path = require('path');
 let assert = require('assert');
 
-let mrc = require(path.join(__dirname, '..', 'mondrian-rest'));
+let mrc = require(path.join(__dirname, '..', 'lib', 'mondrian-rest'));
 
 let Cube = mrc.Cube;
 

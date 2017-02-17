@@ -4,7 +4,7 @@ let querystring = require('querystring');
 
 let response = require('./fixtures/cube_response.json');
 
-let mrc = require(path.join(__dirname, '..', 'mondrian-rest'));
+let mrc = require(path.join(__dirname, '..', 'lib', 'mondrian-rest'));
 let Query  = mrc.Query;
 let Cube = mrc.Cube;
 

@@ -2,9 +2,11 @@ var path = require("path");
 var webpack = require("webpack");
 var WriteFilePlugin = require("write-file-webpack-plugin");
 var packageJson = require("./package.json");
+var execSync = require('child_process').execSync;
 
 var LICENSE_HEADER =
 `mondrian-rest-client ${packageJson.version} (https://github.com/jazzido/mondrian-rest-client)
+rev ${execSync('git rev-parse --short HEAD')}
 Copyright 2017 Datawheel, LLC
 Licensed under MIT`;
 
@@ -12,7 +14,7 @@ module.exports = [
   {
     entry: "./build/src/index.js",
     output: {
-      filename: "mondrian-rest.js",
+      filename: "lib/mondrian-rest.js",
       // adds the UMD header to allow export to AMD, commonJS, or global
       libraryTarget: "umd",
       // the name of the AMD/commonJS/global
