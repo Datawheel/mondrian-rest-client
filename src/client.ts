@@ -15,6 +15,19 @@ export default class Client {
         this.cubesCache = {};
     }
 
+    cubes(): Promise<Cube[]> {
+        return axios.get(urljoin(this.api_base, 'cubes'))
+            .then((value: AxiosResponse) => {
+                const cubes: Cube[] = [];
+                value.data.cubes.forEach((j) => {
+                    const c = Cube.fromJSON(j);
+                    cubes.push(c);
+                    this.cubesCache[c.name] = c;
+                });
+                return cubes;
+            })
+    }
+
     cube(name: string): Promise<Cube> {
         if (name in this.cubesCache) {
             return Promise.resolve(this.cubesCache[name]);

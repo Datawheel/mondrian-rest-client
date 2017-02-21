@@ -37,4 +37,11 @@ describe('Cube', function() {
                 // TODO add assertions
             });
     });
+
+    it('returns the cubes defined in the server', function() {
+        return client.cubes().then(function(cubes) {
+            // TODO add assertions
+            console.log(cubes);
+        });
+    })
 });
