@@ -4,6 +4,8 @@ import urljoin = require('url-join');
 import Cube from './cube';
 import Query from './query';
 import Aggregation from './aggregation';
+import Member from './member';
+import { Level } from './dimension';
 
 export default class Client {
 
@@ -47,6 +49,16 @@ export default class Client {
             .get(urljoin(this.api_base, query.path()))
             .then((value) => {
                 return new Aggregation(value.data.data);
+            });
+    }
+
+    members(level: Level): Promise<Member[]> {
+        const cube = level.hierarchy.dimension.cube;
+        console.log(urljoin(this.api_base, 'cubes', cube.name, level.membersPath()));
+        return axios
+            .get(urljoin(this.api_base, 'cubes', cube.name, level.membersPath()))
+            .then((value: AxiosResponse) => {
+                return value.data.members.map(Member.fromJSON);
             });
     }
 }

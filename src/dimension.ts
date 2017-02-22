@@ -1,4 +1,5 @@
 import { Annotations } from './annotations';
+import Cube from './cube';
 
 export class Level {
     name: string;
@@ -7,6 +8,7 @@ export class Level {
     depth: number;
     annotations: Annotations = {};
     properties: string[];
+    hierarchy: Hierarchy;
 
     constructor(name: string, caption: string, fullName: string,
         depth: number, annotations: Annotations, properties: string[]) {
@@ -31,17 +33,22 @@ export class Level {
     hasProperty(propertyName: string): boolean {
         return this.properties.indexOf(propertyName) !== -1;
     }
+
+    membersPath(): string {
+        return `/dimensions/${this.hierarchy.dimension.name}/levels/${this.name}/members`;
+    }
 }
 
 export class Hierarchy {
     name: string;
     allMemberName: string;
     levels: Level[];
+    dimension: Dimension;
 
     constructor(name: string, allMemberName: string, levels: Level[]) {
         this.name = name;
         this.allMemberName = allMemberName;
-        this.levels = levels;
+        this.levels = levels.map((l) => Object.assign(l, { hierarchy: this }));
     }
 
     static fromJSON(json: {}): Hierarchy {
@@ -71,6 +78,7 @@ export default class Dimension {
     dimensionType: DimensionType;
     annotations: Annotations;
     hierarchies: Hierarchy[];
+    cube: Cube;
 
     constructor(name: string,
         caption: string | null,
@@ -90,7 +98,7 @@ export default class Dimension {
             default:
                 throw new TypeError(`${dimensionType} is not a valid DimensionType`)
         }
-        this.hierarchies = hierarchies;
+        this.hierarchies = hierarchies.map((h) => Object.assign(h, { dimension: this }));
         this.annotations = annotations;
     }
 

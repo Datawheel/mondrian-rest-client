@@ -38,5 +38,17 @@ describe('Cube with properties', function() {
                 assert.equal(l.properties.length, 1);
             });
     });
-
 });
+
+describe('Level', function() {
+    let response, cube;
+    beforeEach(function() {
+        response = require('./fixtures/tax_data.json');
+        cube = Cube.fromJSON(response);
+    });
+
+    it('generates a path for getting a Level\'s members', function() {
+        assert.equal(cube.dimensions[1].hierarchies[0].levels[1].membersPath(),
+                     '/dimensions/Tax Geography/Levels/Region/members');
+    });
+})

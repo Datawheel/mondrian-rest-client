@@ -21,9 +21,9 @@ export default class Cube {
         this.name = name;
         this.caption = this.annotations['caption'] || name;
         this.measures = measures;
-        this.dimensions = dimensions;
+        this.dimensions = dimensions.map((d) => Object.assign(d, { cube: this }));
 
-        this.dimensionsByName = dimensions.reduce((m: {}, d: Dimension): {} => {
+        this.dimensionsByName = this.dimensions.reduce((m: {}, d: Dimension): {} => {
             m[d.name] = d;
             return m;
         }, {});
@@ -40,6 +40,7 @@ export default class Cube {
     get standardDimensions(): Dimension[] {
         return this.dimensions.filter((d) => d.dimensionType === DimensionType.Standard);
     }
+
 
     get timeDimension(): Dimension {
         const tds = this.dimensions.filter((d) => d.dimensionType === DimensionType.Time);

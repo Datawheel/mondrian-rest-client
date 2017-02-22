@@ -43,5 +43,20 @@ describe('Cube', function() {
             // TODO add assertions
             console.log(cubes);
         });
+    });
+
+
+    it('returns the members of a level', function() {
+        return client.cube('tax_data')
+            .then(function(cube) {
+                return client.members(cube.dimensionsByName['Tax Geography'].hierarchies[0].levels[2]);
+            })
+            .then(function(members) {
+                // TODO add assertions
+                console.log(members);
+            })
+
     })
+
+
 });
