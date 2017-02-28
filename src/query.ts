@@ -13,7 +13,7 @@ export default class Query {
     private cuts: string[];
     private properties: string[];
     private captions: string[];
-    private options: { [opt: string]: boolean } = {
+    public options: { [opt: string]: boolean } = {
         'nonempty': true,
         'distinct': false,
         'parents': false,
@@ -26,6 +26,7 @@ export default class Query {
 
     drilldown(...parts: string[]) {
         const lvl = this.getLevel(...parts);
+
 
         if (this.drilldowns === undefined) {
             this.drilldowns = [lvl]

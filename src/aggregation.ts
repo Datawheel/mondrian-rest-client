@@ -1,7 +1,12 @@
 export default class Aggregation {
-    data: {}
+    data: {};
+    url: string;
+    options: { [option: string]: boolean };
 
-    constructor(data: {}) {
+
+    constructor(data: {}, url: string, options: { [option: string]: boolean }) {
         this.data = data;
+        this.url = url;
+        this.options = options;
     }
 }
