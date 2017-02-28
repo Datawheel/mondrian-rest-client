@@ -1,8 +1,6 @@
 let path = require('path');
 let assert = require('assert');
 
-XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
-
 let mrc = require(path.join(__dirname, '..', 'lib', 'mondrian-rest'));
 let Client = mrc.Client;
 
@@ -54,9 +52,7 @@ describe('Cube', function() {
             .then(function(members) {
                 // TODO add assertions
                 console.log(members);
-            })
-
-    })
-
+            });
+    });
 
 });

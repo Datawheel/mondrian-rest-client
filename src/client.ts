@@ -1,5 +1,6 @@
-import axios, { Promise, AxiosPromise, AxiosRequestConfig, AxiosResponse } from 'axios';
 import urljoin = require('url-join');
+
+import * as isoFetch from 'isomorphic-fetch';
 
 import Cube from './cube';
 import Query from './query';
@@ -18,10 +19,11 @@ export default class Client {
     }
 
     cubes(): Promise<Cube[]> {
-        return axios.get(urljoin(this.api_base, 'cubes'))
-            .then((value: AxiosResponse) => {
+        return isoFetch(urljoin(this.api_base, 'cubes'))
+            .then(rsp => rsp.json())
+            .then((value) => {
                 const cubes: Cube[] = [];
-                value.data.cubes.forEach((j) => {
+                value['cubes'].forEach((j) => {
                     const c = Cube.fromJSON(j);
                     cubes.push(c);
                     this.cubesCache[c.name] = c;
@@ -35,9 +37,10 @@ export default class Client {
             return Promise.resolve(this.cubesCache[name]);
         }
         else {
-            return axios.get(urljoin(this.api_base, 'cubes', name))
-                .then((value: AxiosResponse) => {
-                    const c = Cube.fromJSON(value.data);
+            return isoFetch(urljoin(this.api_base, 'cubes', name))
+                .then(rsp => rsp.json())
+                .then((value) => {
+                    const c = Cube.fromJSON(value);
                     this.cubesCache[c.name] = c;
                     return c;
                 });
@@ -45,20 +48,18 @@ export default class Client {
     }
 
     query(query: Query): Promise<Aggregation> {
-        return axios
-            .get(urljoin(this.api_base, query.path()))
-            .then((value) => {
-                return new Aggregation(value.data.data);
-            });
+        const url = urljoin(this.api_base, query.path());
+        return isoFetch(url)
+            .then(rsp => rsp.json())
+            .then((value) => new Aggregation(value, url, query.options));
     }
 
     members(level: Level): Promise<Member[]> {
         const cube = level.hierarchy.dimension.cube;
-        console.log(urljoin(this.api_base, 'cubes', cube.name, level.membersPath()));
-        return axios
-            .get(urljoin(this.api_base, 'cubes', cube.name, level.membersPath()))
-            .then((value: AxiosResponse) => {
-                return value.data.members.map(Member.fromJSON);
+        return isoFetch(urljoin(this.api_base, 'cubes', cube.name, level.membersPath()))
+            .then(rsp => rsp.json())
+            .then((value) => {
+                return value['members'].map(Member.fromJSON);
             });
     }
 }

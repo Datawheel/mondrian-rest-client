@@ -20,6 +20,16 @@ module.exports = [
       // the name of the AMD/commonJS/global
       library: "mondrian-rest"
     },
+    externals: [
+      {
+        'isomorphic-fetch': {
+          root: 'isomorphic-fetch',
+          commonjs2: 'isomorphic-fetch',
+          commonjs: 'isomorphic-fetch',
+          amd: 'isomorphic-fetch'
+        }
+      }
+    ],
     module: {
       loaders: [
           {
