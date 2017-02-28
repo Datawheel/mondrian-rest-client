@@ -72,7 +72,7 @@ describe('Query with properties', function() {
             query.property('ISICrev4', 'Level 1', 'No existe');
         },
                       Error);
-    })
+    });
 });
 
 describe('Query with caption', function() {
