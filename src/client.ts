@@ -2,11 +2,19 @@ import urljoin = require('url-join');
 
 import * as isoFetch from 'isomorphic-fetch';
 
+
 import Cube from './cube';
 import Query from './query';
 import Aggregation from './aggregation';
 import Member from './member';
 import { Level } from './dimension';
+
+const FORMATS = {
+    'json': 'application/json',
+    'csv': 'text/csv',
+    'xls': 'application/vnd.ms-excel',
+    'jsonrecords': 'application/x-jsonrecords'
+};
 
 export default class Client {
 
@@ -47,9 +55,13 @@ export default class Client {
         }
     }
 
-    query(query: Query): Promise<Aggregation> {
+    query(query: Query, format:string = "json"): Promise<Aggregation> {
         const url = urljoin(this.api_base, query.path());
-        return isoFetch(url)
+        return isoFetch(url,
+                        {
+                            headers: {
+                                'Accept': FORMATS[format]
+                            }})
             .then(rsp => rsp.json())
             .then((value) => new Aggregation(value, url, query.options));
     }
