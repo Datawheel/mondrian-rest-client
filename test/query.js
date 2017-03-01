@@ -41,17 +41,21 @@ describe('Query', function() {
             .measure('RCA');
 
         assert.equal(querystring.parse(q.qs)['drilldown[]'], '[Geography].[Region]');
-
-        console.log(q.path('jsonrecords'));
     });
 
     it('rejects and invalid drilldown', function() {
         assert.throws(function() {
             query
-                .drilldown('Geography', 'Block')
+                .drilldown('Geography', 'Block');
         },
                       Error);
     });
+
+    it('accepts a valid option', function() {
+        qs = query.drilldown('Geography', 'Region').option('parents', true).qs;
+        assert.equal(querystring.parse(qs)['parents'], 'true');
+    });
+
 });
 
 describe('Query with properties', function() {
