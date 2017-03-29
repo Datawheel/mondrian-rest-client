@@ -1,6 +1,7 @@
 import Measure from './measure';
 import Dimension, { DimensionType } from './dimension';
 import { Annotations } from './annotations';
+import NamedSet from './namedSet';
 import Query from './query';
 
 export default class Cube {
@@ -8,20 +9,23 @@ export default class Cube {
     name: string;
     caption: string;
     dimensions: Dimension[];
+    namedSets: NamedSet[];
     measures: Measure[];
     annotations: Annotations = {};
 
     dimensionsByName: { [d: string]: Dimension };
 
     constructor(name: string,
-        dimensions: Dimension[],
-        measures: Measure[],
-        annotations: Annotations) {
+                dimensions: Dimension[],
+                namedSets: NamedSet[],
+                measures: Measure[],
+                annotations: Annotations) {
 
         this.name = name;
         this.caption = this.annotations['caption'] || name;
         this.measures = measures;
         this.dimensions = dimensions.map((d) => Object.assign(d, { cube: this }));
+        this.namedSets = namedSets;
 
         this.dimensionsByName = this.dimensions.reduce((m: {}, d: Dimension): {} => {
             m[d.name] = d;
@@ -30,11 +34,22 @@ export default class Cube {
     }
 
     static fromJSON(json: {}): Cube {
-        const c: Cube = new Cube(json['name'],
-            json['dimensions'].map(Dimension.fromJSON),
-            json['measures'].map(Measure.fromJSON),
-            json['annotations']);
-        return c;
+        if (!json['named_sets']) json['named_sets'] = [];
+
+        const dimensions: Dimension[] = json['dimensions'].map(Dimension.fromJSON);
+
+        return new Cube(json['name'],
+                        dimensions,
+                        json['named_sets'].map(ns => {
+                            return new NamedSet(ns['name'],
+                                                dimensions
+                                                  .find(d => d.name == ns['dimension'])
+                                                  .getHierarchy(ns['hierarchy'])
+                                                  .getLevel(ns['level']),
+                                                ns['annotations']);
+                        }),
+                        json['measures'].map(Measure.fromJSON),
+                        json['annotations']);
     }
 
     get standardDimensions(): Dimension[] {

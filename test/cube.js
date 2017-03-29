@@ -40,6 +40,26 @@ describe('Cube with properties', function() {
     });
 });
 
+describe('Cube with named set', function() {
+    let response, cube;
+
+    beforeEach(function() {
+        response = require('./fixtures/cube_with_named_set.json');
+        cube = Cube.fromJSON(response);
+    });
+
+    it('parses named_sets', function() {
+        var ns = cube.namedSets[0];
+        assert.equal(cube
+                       .dimensionsByName['Nationality']
+                       .getHierarchy('Nationality')
+                       .getLevel('Country of Origin'),
+                     ns.level);
+    });
+});
+
+
+
 describe('Level', function() {
     let response, cube;
     beforeEach(function() {
@@ -51,4 +71,4 @@ describe('Level', function() {
         assert.equal(cube.dimensions[1].hierarchies[0].levels[1].membersPath(),
                      '/dimensions/Tax Geography/levels/Region/members');
     });
-})
+});
