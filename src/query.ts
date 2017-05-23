@@ -92,7 +92,7 @@ export default class Query {
     get qs(): string {
         const o = {
             drilldown: this.drilldowns ? this.drilldowns.map((d) => d.fullName) : undefined,
-            cut: this.cuts,
+            cut: this.cuts ? [`{${this.cuts.join(",")}}`] : undefined,
             measures: this.measures ? this.measures.map((m) => m.name) : undefined,
             properties: this.properties,
             caption: this.captions,
