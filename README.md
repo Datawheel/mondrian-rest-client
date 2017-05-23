@@ -24,7 +24,7 @@ client.cube('tax_data')
 ## Building
 
 ```
-yarn run build:tsc && yarn run build:webpack`
+yarn run build:tsc && yarn run build:webpack
 ```
 
 ## License
