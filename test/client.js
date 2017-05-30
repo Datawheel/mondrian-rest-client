@@ -7,8 +7,8 @@ let Client = mrc.Client;
 describe('Cube', function() {
     let client;
     beforeEach(function() {
-        //client = new Client('http://chilecube.datawheel.us');
-        client = new Client('http://hermes:5000');
+        client = new Client('http://chilecube.datawheel.us');
+        //client = new Client('http://hermes:5000');
     });
 
     it('get a cube from server', function() {
@@ -43,7 +43,6 @@ describe('Cube', function() {
         });
     });
 
-
     it('returns the members of a level', function() {
         return client.cube('tax_data')
             .then(function(cube) {
@@ -54,5 +53,18 @@ describe('Cube', function() {
                 console.log(members);
             });
     });
+
+    it('correctly behaves on a 400 error', function() {
+        let c = client.cube('income_gini');
+        return c.then(function(cube) {
+            return client.query(
+                cube.query.drilldown('Date', 'Year')
+            );
+        })
+            .then(function(aggregation) {
+                console.log('aggregation', aggregation);
+            });
+    });
+
 
 });
