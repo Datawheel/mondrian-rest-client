@@ -19,6 +19,7 @@ describe('Cube', function() {
                                                'caption',
                                                'measures',
                                                'dimensions',
+                                               'namedSets',
                                                'dimensionsByName' ]);
         });
     });
