@@ -40,6 +40,8 @@ class MondrianClientError extends Error {
     }
 }
 
+const MAX_GET_URI_LENGTH = 1024;
+
 export default class Client {
 
     private api_base: string;
@@ -79,13 +81,28 @@ export default class Client {
         }
     }
 
-    query(query: Query, format:string = "json"): Promise<Aggregation> {
-        const url = urljoin(this.api_base, query.path());
-        return isoFetch(url,
-                        {
-                            headers: {
-                                'Accept': FORMATS[format]
-                            }})
+    query(query: Query, format:string = "json", method:string = 'AUTO'): Promise<Aggregation> {
+        let url = urljoin(this.api_base, query.path()),
+        reqOptions = {
+            method: 'get',
+            headers: {
+                'Accept': FORMATS[format]
+            }
+        };
+
+        const qs = query.qs;
+
+        if (method == 'AUTO') {
+            method = url.length > MAX_GET_URI_LENGTH ? 'POST' : 'GET';
+        }
+        if (method == 'POST') {
+            url = urljoin(this.api_base, `/cubes/${query.cube.name}/aggregate`);
+            reqOptions.method = 'post';
+            reqOptions.headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
+            reqOptions['body'] = query.qs;
+        }
+
+        return isoFetch(url, reqOptions)
             .then(rsp => {
                 if (rsp.ok) {
                     return rsp.json();
