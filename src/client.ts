@@ -63,11 +63,11 @@ export default class Client {
                     this.cubesCache[c.name] = c;
                 });
                 return cubes;
-            })
+            });
     }
 
     cube(name: string): Promise<Cube> {
-        if (name in this.cubesCache) {
+        if (this.cubesCache[name] !== undefined) {
             return Promise.resolve(this.cubesCache[name]);
         }
         else {
