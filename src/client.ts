@@ -127,4 +127,13 @@ export default class Client {
                 return value['members'].map(Member.fromJSON);
             });
     }
+
+    member(level: Level, key: string): Promise<Member> {
+        const cube = level.hierarchy.dimension.cube;
+        return isoFetch(urljoin(this.api_base, 'cubes', cube.name, level.membersPath(), key))
+            .then(rsp => rsp.json())
+            .then((value) => {
+                return Member.fromJSON(value);
+            });
+    }
 }
