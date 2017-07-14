@@ -9,10 +9,11 @@ export default class Member {
     numChildren: number;
     parentName: string;
     children: Member[];
+    ancestors: Member[];
 
     constructor(name: string, fullName: string, caption: string, allMember: boolean,
         drillable: boolean, depth: number, key: string,
-        numChildren: number, children: Member[], parentName: string) {
+        numChildren: number, children: Member[],ancestors: Member[], parentName: string) {
 
         this.name = name;
         this.fullName = fullName;
@@ -24,6 +25,7 @@ export default class Member {
         this.numChildren = numChildren;
         this.parentName = parentName;
         this.children = children;
+        this.ancestors = ancestors;
     }
 
     static fromJSON(json: {}): Member {
@@ -31,6 +33,7 @@ export default class Member {
                 json['all_member?'], json['drillable?'], 
                 json['depth'], json['key'], json['num_children'], 
                 json['children'].map(Member.fromJSON),
+                json['ancestors'].map(Member.fromJSON),
                 json['parent_name']);
     }
 }
