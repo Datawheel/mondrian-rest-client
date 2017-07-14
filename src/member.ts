@@ -23,6 +23,7 @@ export default class Member {
         this.key = key;
         this.numChildren = numChildren;
         this.parentName = parentName;
+        this.children = children;
     }
 
     static fromJSON(json: {}): Member {
