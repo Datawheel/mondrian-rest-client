@@ -33,7 +33,7 @@ export default class Member {
                 json['all_member?'], json['drillable?'], 
                 json['depth'], json['key'], json['num_children'], 
                 json['children'].map(Member.fromJSON),
-                json['ancestors'].map(Member.fromJSON),
+                (json['ancestors'])?json['ancestors'].map(Member.fromJSON):[],
                 json['parent_name']);
     }
 }
