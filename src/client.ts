@@ -1,4 +1,5 @@
 import urljoin = require('url-join');
+import formurlencoded = require('form-urlencoded');
 
 import * as isoFetch from 'isomorphic-fetch';
 
@@ -119,9 +120,11 @@ export default class Client {
             .then((value) => new Aggregation(value, url, query.options));
     }
 
-    members(level: Level): Promise<Member[]> {
+    members(level: Level, getChildren: boolean=false): Promise<Member[]> {
         const cube = level.hierarchy.dimension.cube;
-        return isoFetch(urljoin(this.api_base, 'cubes', cube.name, level.membersPath()))
+        const qs = (getChildren)?'?children=true':'';
+
+        return isoFetch(urljoin(this.api_base, 'cubes', cube.name, level.membersPath())+qs)
             .then(rsp => rsp.json())
             .then((value) => {
                 return value['members'].map(Member.fromJSON);
