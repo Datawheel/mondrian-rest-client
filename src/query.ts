@@ -24,6 +24,10 @@ export default class Query {
         this.cube = cube;
     }
 
+    getDrilldowns(): Level[] {
+        return this.drilldowns;
+    }
+
     drilldown(...parts: string[]) {
         const lvl = this.getLevel(...parts);
 
@@ -36,6 +40,10 @@ export default class Query {
         }
 
         return this;
+    }
+
+    getMeasures(): Measure[] {
+        return this.measures;
     }
 
     measure(measureName: string): Query {
