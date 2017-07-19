@@ -5,7 +5,7 @@ A javascript client for [mondrian-rest](https://github.com/jazzido/mondrian-rest
 ## Example usage
 
 ``` javascript
-let client = new Client('http://chilecube.datawheel.us');
+let client = new Client('http://your.mondrian.rest.server');
 client.cube('tax_data')
   .then(cube => client.query(cube.query
                                  .drilldown('ISICrev4', 'Level 1')
