@@ -55,7 +55,18 @@ describe('Cube', function() {
             });
     });
 
-    it('correctly behaves on a 400 error', function() {
+  it('returns the members of a level and replaces their caption with the requested property', function() {
+    return client.cube('exports')
+      .then(function(cube) {
+        return client.members(cube.dimensionsByName['Export HS'].hierarchies[0].levels[1], false, 'HS0 ES');
+      })
+      .then(function(members) {
+        // TODO add assertions
+        console.log(members);
+      });
+  });
+
+
         let c = client.cube('income_gini');
         return c.then(function(cube) {
             return client.query(

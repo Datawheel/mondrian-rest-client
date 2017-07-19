@@ -1,6 +1,5 @@
-import urljoin = require('url-join');
 import formurlencoded = require('form-urlencoded');
-
+import urljoin = require('url-join');
 import * as isoFetch from 'isomorphic-fetch';
 
 import Cube from './cube';
@@ -120,9 +119,19 @@ export default class Client {
             .then((value) => new Aggregation(value, url, query.options));
     }
 
-    members(level: Level, getChildren: boolean=false): Promise<Member[]> {
+    members(level: Level, getChildren: boolean=false, caption:string=null): Promise<Member[]> {
         const cube = level.hierarchy.dimension.cube;
-        const qs = (getChildren)?'?children=true':'';
+        const opts = {}
+        if (getChildren) opts['children'] = true;
+
+        if (caption !== null && !level.hasProperty(caption)) {
+            throw new Error(`Property ${caption} does not exist in level ${level.fullName}`);
+        }
+
+        if (caption !== null) opts['caption'] = caption;
+
+        let qs = formurlencoded(opts);
+        if (qs.length > 1) qs = '?' + qs;
 
         return isoFetch(urljoin(this.api_base, 'cubes', cube.name, level.membersPath())+qs)
             .then(rsp => rsp.json())
