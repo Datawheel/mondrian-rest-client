@@ -12,7 +12,8 @@ const FORMATS = {
     'json': 'application/json',
     'csv': 'text/csv',
     'xls': 'application/vnd.ms-excel',
-    'jsonrecords': 'application/x-jsonrecords'
+    'jsonrecords': 'application/x-jsonrecords',
+    'jsonstat': 'application/x-jsonstat'
 };
 
 class MondrianClientError extends Error {
