@@ -141,9 +141,22 @@ export default class Client {
             });
     }
 
-    member(level: Level, key: string): Promise<Member> {
+    member(level: Level, key: string,getChildren: boolean=false, caption:string=null): Promise<Member> {
         const cube = level.hierarchy.dimension.cube;
-        return isoFetch(urljoin(this.api_base, 'cubes', cube.name, level.membersPath(), key))
+           
+        const opts = {}
+        if (getChildren) opts['children'] = true;
+
+        if (caption !== null && !level.hasProperty(caption)) {
+            throw new Error(`Property ${caption} does not exist in level ${level.fullName}`);
+        }
+
+        if (caption !== null) opts['caption'] = caption;
+
+        let qs = formurlencoded(opts);
+        if (qs.length > 1) qs = '?' + qs;
+
+        return isoFetch(urljoin(this.api_base, 'cubes', cube.name, level.membersPath(), key)+qs)
             .then(rsp => rsp.json())
             .then((value) => {
                 return Member.fromJSON(value);
