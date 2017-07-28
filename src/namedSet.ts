@@ -11,4 +11,8 @@ export default class NamedSet {
         this.level = level;
         this.annotations = annotations;
     }
+
+    get fullName(): string {
+        return this.name;
+    }
 }

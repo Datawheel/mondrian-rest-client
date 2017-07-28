@@ -92,3 +92,23 @@ describe('Query with caption', function() {
         assert.equal(querystring.parse(q.qs)['caption[]'], '[ISICrev4].[Level 1].Level 1 ES');
     });
 });
+
+describe('Query with drilldown on namedset', function() {
+  let response, cube, query;
+
+  beforeEach(function() {
+    response = require('./fixtures/another_cube_with_named_set.json');
+    cube = Cube.fromJSON(response);
+    query = cube.query;
+  });
+
+  it('drilldowns on a level and a namedset', function() {
+    q = query
+      .drilldown('Year', 'Year')
+      .drilldown('CNY Filter County')
+      .measure('t_dollars')
+      .measure('Dollars Sum')
+      .measure('Latest Dollars Sum');
+    assert.deepEqual(querystring.parse(q.qs)['drilldown[]'], [ '[Year].[Year]', 'CNY Filter County' ]);
+  });
+});

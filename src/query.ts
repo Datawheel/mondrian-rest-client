@@ -3,13 +3,16 @@ import formurlencoded = require('form-urlencoded');
 import Cube from './cube';
 import { Level, Hierarchy } from './dimension';
 import Measure from './measure';
+import NamedSet from './namedSet';
+
+export type Drillable = NamedSet | Level;
 
 export default class Query {
 
     cube: Cube;
 
     private measures: Measure[];
-    private drilldowns: Level[];
+    private drilldowns: Drillable[];
     private cuts: string[];
     private properties: string[];
     private captions: string[];
@@ -24,19 +27,26 @@ export default class Query {
         this.cube = cube;
     }
 
-    getDrilldowns(): Level[] {
+    getDrilldowns(): Drillable[] {
         return this.drilldowns;
     }
 
-    drilldown(...parts: string[]) {
-        const lvl = this.getLevel(...parts);
+    drilldown(...parts: string[]){
 
+        var drillable: Drillable;
 
-        if (this.drilldowns === undefined) {
-            this.drilldowns = [lvl]
+        if (parts.length === 1) {
+            drillable = this.cube.findNamedSet(parts[0]);
         }
         else {
-            this.drilldowns.push(lvl);
+            drillable = this.getLevel(...parts);
+        }
+
+        if (this.drilldowns === undefined) {
+            this.drilldowns = [drillable]
+        }
+        else {
+            this.drilldowns.push(drillable);
         }
 
         return this;

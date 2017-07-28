@@ -75,6 +75,14 @@ export default class Cube {
         return ms[0];
     }
 
+    findNamedSet(namedSetName: string): NamedSet {
+        const ns = this.namedSets.find(ns => ns.name === namedSetName);
+        if (ns === undefined) {
+            throw new Error(`NamedSet ${namedSetName} does not exist in cube ${this.name}`);
+        }
+        return ns;
+    }
+
     get query(): Query {
         return new Query(this);
     }
