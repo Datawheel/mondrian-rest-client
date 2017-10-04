@@ -22,6 +22,11 @@ describe('Cube', function() {
         assert.equal(cube.timeDimension.name,
                      'Date');
     });
+
+    it('parses the measure aggregatorType field', function() {
+        assert.deepEqual(cube.measures.map(function(m) { return m['aggregatorType']}),
+                         ['SUM', 'UNKNOWN',  'UNKNOWN', 'UNKNOWN', 'UNKNOWN', 'UNKNOWN', 'UNKNOWN']);
+    })
 });
 
 describe('Cube with properties', function() {
