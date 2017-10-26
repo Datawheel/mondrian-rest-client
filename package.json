@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "A client for mondrian-rest",
   "main": "lib/mondrian-rest.js",
+  "typings": "lib/types/index.d.ts",
   "browser": {
     "mondrian-rest-client/node_modules/axios/lib/adapters/http.js": "mondrian-rest-client/node_modules/axios/lib/adapters/xhr.js"
   },

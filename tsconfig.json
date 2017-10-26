@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
       "declaration": true,
+      "declarationDir": "lib/types",
       "forceConsistentCasingInFileNames": true,
       "module": "commonjs",
       "noFallthroughCasesInSwitch": true,
