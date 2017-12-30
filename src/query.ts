@@ -20,7 +20,8 @@ export default class Query {
         'nonempty': true,
         'distinct': false,
         'parents': false,
-        'debug': false
+        'debug': false,
+        'sparse': true
     };
 
     constructor(cube: Cube) {
@@ -117,7 +118,8 @@ export default class Query {
             nonempty: this.options['nonempty'],
             distinct: this.options['distinct'],
             parents: this.options['parents'],
-            debug: this.options['debug']
+            debug: this.options['debug'],
+            sparse: this.options['sparse']
         };
 
         return formurlencoded(o);

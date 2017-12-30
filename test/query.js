@@ -52,8 +52,15 @@ describe('Query', function() {
     });
 
     it('accepts a valid option', function() {
-        qs = query.drilldown('Geography', 'Region').option('parents', true).qs;
-        assert.equal(querystring.parse(qs)['parents'], 'true');
+      qs = query.drilldown('Geography', 'Region').option('parents', true).option('sparse', false).qs;
+      assert.equal(querystring.parse(qs)['parents'], 'true');
+      assert.equal(querystring.parse(qs)['sparse'], 'false');
+    });
+
+    it('rejects an invalid option', function() {
+        assert.throws(function() {
+         query.drilldown('Geography', 'Region').option('invalid', true);
+        }, Error);
     });
 
 });
