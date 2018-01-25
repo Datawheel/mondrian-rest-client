@@ -41,7 +41,7 @@ class MondrianClientError extends Error {
     }
 }
 
-const MAX_GET_URI_LENGTH = 1024;
+const MAX_GET_URI_LENGTH = 2000;
 
 export default class Client {
 
