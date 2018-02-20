@@ -1,10 +1,10 @@
 export default class Aggregation {
-    data: {};
+    data: any;
     url: string;
     options: {
         [option: string]: boolean;
     };
-    constructor(data: {}, url: string, options: {
+    constructor(data: any, url: string, options: {
         [option: string]: boolean;
     });
 }
