@@ -26,6 +26,7 @@ export default class Cube {
         this.measures = measures;
         this.dimensions = dimensions.map((d) => Object.assign(d, { cube: this }));
         this.namedSets = namedSets;
+        this.annotations = annotations;
 
         this.dimensionsByName = this.dimensions.reduce((m: {}, d: Dimension): {} => {
             m[d.name] = d;

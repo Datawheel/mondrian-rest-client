@@ -26,8 +26,33 @@ describe('Cube', function() {
     it('parses the measure aggregatorType field', function() {
         assert.deepEqual(cube.measures.map(function(m) { return m['aggregatorType']}),
                          ['SUM', 'UNKNOWN',  'UNKNOWN', 'UNKNOWN', 'UNKNOWN', 'UNKNOWN', 'UNKNOWN']);
-    })
+    });
 });
+
+describe('Cube with annotations', function() {
+  let response, cube;
+  beforeEach(function() {
+    response = require('./fixtures/cube_with_annotations.json');
+    cube = Cube.fromJSON(response);
+  });
+
+  it('contains annotations in Cube', function() {
+    assert.deepEqual(cube.annotations,
+                 { source_name: 'Estadísticas de Migración — Departamento de Extranjería y Migración',
+                   source_link: 'http://www.extranjeria.gob.cl/estadisticas-migratorias/',
+                   topic: 'demography' });
+  });
+
+  it ('contains annotations in measures', function() {
+    var m = cube.findMeasure('Number of visas');
+    assert.deepEqual(m.annotations,
+                     {
+                       "es_element_caption":"Cantidad de visas",
+                       "es_format":"XXX"
+                     });
+  });
+});
+
 
 describe('Cube with properties', function() {
     let response, cube;
