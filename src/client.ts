@@ -46,8 +46,8 @@ const MAX_GET_URI_LENGTH = 2000;
 export default class Client {
 
     private api_base: string;
-    private cubesCache: Cube[];
-    private cubeCache: { [cname: string]: Cube };
+    private cubesCache: Cube[] | Promise<Cube[]>;
+    private cubeCache: { [cname: string]: Cube | Promise<Cube> };
 
     constructor(api_base: string) {
         this.api_base = api_base;
