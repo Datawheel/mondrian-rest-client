@@ -46,39 +46,46 @@ const MAX_GET_URI_LENGTH = 2000;
 export default class Client {
 
     private api_base: string;
-    private cubesCache: { [cname: string]: Cube };
+    private cubesCache: Cube[];
+    private cubeCache: { [cname: string]: Cube };
 
     constructor(api_base: string) {
         this.api_base = api_base;
-        this.cubesCache = {};
+        this.cubesCache = undefined;
+        this.cubeCache = {};
     }
 
     cubes(): Promise<Cube[]> {
-        return isoFetch(urljoin(this.api_base, 'cubes'))
-            .then(rsp => rsp.json())
-            .then((value) => {
-                const cubes: Cube[] = [];
-                value['cubes'].forEach((j) => {
-                    const c = Cube.fromJSON(j);
-                    cubes.push(c);
-                    this.cubesCache[c.name] = c;
+        if (this.cubesCache !== undefined) {
+            return Promise.resolve(this.cubesCache);
+        }
+        else {
+            const p = isoFetch(urljoin(this.api_base, 'cubes'))
+                .then(rsp => rsp.json())
+                .then((value) => {
+                    const cubes: Cube[] = [];
+                    value['cubes'].forEach((j) => {
+                        const c = Cube.fromJSON(j);
+                        cubes.push(c);
+                        this.cubeCache[c.name] = c;
+                    });
+                    return cubes;
                 });
-                return cubes;
-            });
+            this.cubesCache = p;
+            return p;
+        }
     }
 
     cube(name: string): Promise<Cube> {
-        if (this.cubesCache[name] !== undefined) {
-            return Promise.resolve(this.cubesCache[name]);
+        if (this.cubeCache[name] !== undefined) {
+            return Promise.resolve(this.cubeCache[name]);
         }
         else {
-            return isoFetch(urljoin(this.api_base, 'cubes', name))
+            const p = isoFetch(urljoin(this.api_base, 'cubes', name))
                 .then(rsp => rsp.json())
-                .then((value) => {
-                    const c = Cube.fromJSON(value);
-                    this.cubesCache[c.name] = c;
-                    return c;
-                });
+                .then((value) => Cube.fromJSON(value));
+            this.cubeCache[name] = p;
+            return p;
         }
     }
 
