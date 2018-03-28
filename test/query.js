@@ -128,17 +128,17 @@ describe("Query with filter measures", function() {
     query = cube.query;
   });
 
-  it('should filter on single-clause valid filter expression', function() {
+  it('should accept a single-clause valid filter expression', function() {
     q = query
       .filter('Labour Cost', '>', 24700);
-    assert.deepEqual(querystring.parse(q.qs)['filter[]'], ['Labour Cost > 24700']);
+    assert.deepEqual(querystring.parse(q.qs)['filter[]'], 'Labour Cost > 24700');
   });
 
-  it('should filter on multiple-clause valid filter expression', function() {
+  it('should accept a multiple-clause valid filter expression', function() {
     q = query
       .filter('Labour Cost', '>=', 24700)
       .filter('Value Added', '<', 5555);
-    assert.deepEqual(querystring.parse(q.qs)['filter[]'], ['Labour Cost > 24700', 'Value Added < 5555']);
+    assert.deepEqual(querystring.parse(q.qs)['filter[]'], ['Labour Cost >= 24700', 'Value Added < 5555']);
   });
 
   it('should error on non-existent measure name', function() {
@@ -146,4 +146,4 @@ describe("Query with filter measures", function() {
       query.filter('Invalid measure', '<', 5555);
     }, Error);
   });
-})
+});
