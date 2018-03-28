@@ -147,3 +147,57 @@ describe("Query with filter measures", function() {
     }, Error);
   });
 });
+
+describe("Query with sorting parameters", function() {
+  let response, cube, query;
+  beforeEach(function() {
+    response = require('./fixtures/tax_data.json');
+    cube = Cube.fromJSON(response);
+    query = cube.query;
+  });
+
+  it('should accept a sorting by measure without order direction', function() {
+    q = query
+      .sorting('Labour Cost');
+    qs = querystring.parse(q.qs);
+    assert.deepEqual(qs['order'], 'Measures.[Labour Cost]');
+    assert.deepEqual(qs['order_desc'], undefined);
+  });
+
+  it('should accept a sorting by measure with desc order direction', function() {
+    q = query
+      .sorting('Labour Cost', true);
+    qs = querystring.parse(q.qs);
+    assert.deepEqual(qs['order'], 'Measures.[Labour Cost]');
+    assert.deepEqual(qs['order_desc'], 'true');
+  });
+
+  it('should accept a sorting by property without order direction', function() {
+    q = query
+      .sorting(["ISICrev4", "Level 1", "Level 1 ES"]);
+    qs = querystring.parse(q.qs);
+    assert.deepEqual(qs['order'], '[ISICrev4].[Level 1].Level 1 ES');
+    assert.deepEqual(qs['order_desc'], undefined);
+  });
+
+  it('should accept a sorting by property with asc order direction', function() {
+    q = query
+      .sorting(["ISICrev4", "Level 2", "Level 2 ES"], false);
+    qs = querystring.parse(q.qs);
+    assert.deepEqual(qs['order'], '[ISICrev4].[Level 2].Level 2 ES');
+    assert.deepEqual(qs['order_desc'], 'false');
+  });
+
+  it('should reject a sorting by an invalid measure', function() {
+    assert.throws(function() {
+      query.sorting("Level 1 ES", false);
+    }, Error);
+  });
+
+  it('should reject a sorting by an invalid property', function() {
+    assert.throws(function() {
+      query.sorting(["Labour Cost"], true);
+    }, Error);
+  });
+});
+

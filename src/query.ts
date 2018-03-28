@@ -17,6 +17,8 @@ export default class Query {
     private properties: string[];
     private captions: string[];
     private filters: string[];
+    private orderProp: string;
+    private orderDir: boolean;
     public options: { [opt: string]: boolean } = {
         'nonempty': true,
         'distinct': false,
@@ -113,6 +115,19 @@ export default class Query {
         return this;
     }
 
+    sorting(parts: string | string[], direction: boolean) {
+        if ('string' == typeof parts) {
+            const measure: Measure = this.cube.findMeasure(parts);
+            this.orderProp = `Measures.[${measure.name}]`;
+            this.orderDir = direction;
+        } else {
+            const property: string = this.getProperty(...parts);
+            this.orderProp = property;
+            this.orderDir = direction;
+        }
+        return this;
+    }
+
     option(option: string, value: boolean): Query {
         if (!this.options.hasOwnProperty(option)) {
             throw new Error(`Property ${option} is invalid`);
@@ -129,6 +144,8 @@ export default class Query {
             properties: this.properties,
             caption: this.captions,
             filter: this.filters,
+            order: this.orderProp,
+            order_desc: this.orderDir,
             nonempty: this.options['nonempty'],
             distinct: this.options['distinct'],
             parents: this.options['parents'],
