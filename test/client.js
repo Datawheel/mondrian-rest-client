@@ -1,17 +1,17 @@
-let path = require('path');
-let assert = require('assert');
+let path = require("path");
+let assert = require("assert");
 
-let mrc = require(path.join(__dirname, '..', 'lib', 'mondrian-rest'));
+let mrc = require(path.join(__dirname, "..", "lib", "mondrian-rest"));
 let Client = mrc.Client;
 
-describe('Client', function() {
-    let client;
-    beforeEach(function() {
-        client = new Client('http://chilecube.datawheel.us');
-        //client = new Client('http://hermes:5000');
-    });
+describe("Client", function() {
+  let client;
+  beforeEach(function() {
+    client = new Client("https://chilecube.staging.datachile.io");
+    //client = new Client('http://hermes:5000');
+  });
 
-    /*
+  /*
     it('get a cube from server', function() {
         let c = client.cube('imports');
         return c.then(function(c) {
@@ -46,26 +46,32 @@ describe('Client', function() {
     });
 */
 
-
-    it('returns the members of a level', function() {
-        return client.cube('tax_data')
-            .then(function(cube) {
-                return client.members(cube.dimensionsByName['Tax Geography'].hierarchies[0].levels[2]);
-            })
-            .then(function(members) {
-                // TODO add assertions
-                //console.log(members);
-                client.cube('tax_data')
-                    .then(function(cube) {
-                        console.log("SHOUD BE CACHED");
-                    });
-            });
-    });
-
-  it('returns the members of a level and replaces their caption with the requested property', function() {
-    return client.cube('exports')
+  it("returns the members of a level", function() {
+    return client
+      .cube("tax_data")
       .then(function(cube) {
-        return client.members(cube.dimensionsByName['Export HS'].hierarchies[0].levels[1], false, 'HS0 ES');
+        return client.members(
+          cube.dimensionsByName["Tax Geography"].hierarchies[0].levels[2]
+        );
+      })
+      .then(function(members) {
+        // TODO add assertions
+        //console.log(members);
+        // return client.cube("tax_data").then(function(cube) {
+        //   console.log("SHOUD BE CACHED");
+        // });
+      });
+  });
+
+  it("returns the members of a level and replaces their caption with the requested property", function() {
+    return client
+      .cube("exports")
+      .then(function(cube) {
+        return client.members(
+          cube.dimensionsByName["Export HS"].hierarchies[0].levels[1],
+          false,
+          "HS0 ES"
+        );
       })
       .then(function(members) {
         // TODO add assertions
@@ -73,8 +79,7 @@ describe('Client', function() {
       });
   });
 
-
-/*    it('correctly behaves on a 400 error', function() {
+  /*    it('correctly behaves on a 400 error', function() {
         let c = client.cube('income_gini');
         return c.then(function(cube) {
             return client.query(
@@ -118,5 +123,4 @@ describe('Client', function() {
     });
 
     */
-
 });
