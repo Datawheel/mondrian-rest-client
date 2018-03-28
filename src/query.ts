@@ -17,6 +17,8 @@ export default class Query {
     private properties: string[];
     private captions: string[];
     private filters: string[];
+    private limit: number;
+    private offset: number;
     private orderProp: string;
     private orderDir: boolean;
     public options: { [opt: string]: boolean } = {
@@ -115,6 +117,12 @@ export default class Query {
         return this;
     }
 
+    pagination(limit: number, offset: number) {
+        this.limit = limit || undefined;
+        this.offset = offset || undefined;
+        return this;
+    }
+
     sorting(parts: string | string[], direction: boolean) {
         if ('string' == typeof parts) {
             const measure: Measure = this.cube.findMeasure(parts);
@@ -144,6 +152,8 @@ export default class Query {
             properties: this.properties,
             caption: this.captions,
             filter: this.filters,
+            limit: this.limit,
+            offset: this.offset,
             order: this.orderProp,
             order_desc: this.orderDir,
             nonempty: this.options['nonempty'],

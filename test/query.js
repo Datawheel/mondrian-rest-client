@@ -201,3 +201,36 @@ describe("Query with sorting parameters", function() {
   });
 });
 
+describe("Query with pagination parameters", function() {
+  let response, cube, query;
+  beforeEach(function() {
+    response = require('./fixtures/tax_data.json');
+    cube = Cube.fromJSON(response);
+    query = cube.query;
+  });
+
+  it('should accept a limit without offset', function() {
+    q = query
+      .pagination(1);
+    qs = querystring.parse(q.qs);
+    assert.deepEqual(qs['limit'], '1');
+    assert.deepEqual(qs['offset'], undefined);
+  });
+
+  it('should accept a limit with offset', function() {
+    q = query
+      .pagination(1, 2);
+    qs = querystring.parse(q.qs);
+    assert.deepEqual(qs['limit'], '1');
+    assert.deepEqual(qs['offset'], '2');
+  });
+
+  it('should reset limit and offset if called with no parameters', function() {
+    q = query
+      .pagination(1, 2)
+      .pagination();
+    qs = querystring.parse(q.qs);
+    assert.deepEqual(qs['limit'], undefined);
+    assert.deepEqual(qs['offset'], undefined);
+  });
+});
