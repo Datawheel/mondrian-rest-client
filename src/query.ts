@@ -16,6 +16,7 @@ export default class Query {
     private cuts: string[];
     private properties: string[];
     private captions: string[];
+    private filters: string[];
     public options: { [opt: string]: boolean } = {
         'nonempty': true,
         'distinct': false,
@@ -100,6 +101,18 @@ export default class Query {
         return this;
     }
 
+    filter(measureName: string, comparison: string, value: number): Query {
+        const measure: Measure = this.cube.findMeasure(measureName);
+        const filter = `${measure.name} ${comparison} ${value}`;
+        if (this.filters === undefined) {
+            this.filters = [filter];
+        }
+        else {
+            this.filters.push(filter);
+        }
+        return this;
+    }
+
     option(option: string, value: boolean): Query {
         if (!this.options.hasOwnProperty(option)) {
             throw new Error(`Property ${option} is invalid`);
@@ -115,6 +128,7 @@ export default class Query {
             measures: this.measures ? this.measures.map((m) => m.name) : undefined,
             properties: this.properties,
             caption: this.captions,
+            filter: this.filters,
             nonempty: this.options['nonempty'],
             distinct: this.options['distinct'],
             parents: this.options['parents'],

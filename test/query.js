@@ -119,3 +119,31 @@ describe('Query with drilldown on namedset', function() {
     assert.deepEqual(querystring.parse(q.qs)['drilldown[]'], [ '[Year].[Year]', 'CNY Filter County' ]);
   });
 });
+
+describe("Query with filter measures", function() {
+  let response, cube, query;
+  beforeEach(function() {
+    response = require('./fixtures/tax_data.json');
+    cube = Cube.fromJSON(response);
+    query = cube.query;
+  });
+
+  it('should filter on single-clause valid filter expression', function() {
+    q = query
+      .filter('Labour Cost', '>', 24700);
+    assert.deepEqual(querystring.parse(q.qs)['filter[]'], ['Labour Cost > 24700']);
+  });
+
+  it('should filter on multiple-clause valid filter expression', function() {
+    q = query
+      .filter('Labour Cost', '>=', 24700)
+      .filter('Value Added', '<', 5555);
+    assert.deepEqual(querystring.parse(q.qs)['filter[]'], ['Labour Cost > 24700', 'Value Added < 5555']);
+  });
+
+  it('should error on non-existent measure name', function() {
+    assert.throws(function() {
+      query.filter('Invalid measure', '<', 5555);
+    }, Error);
+  });
+})
