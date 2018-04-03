@@ -35,7 +35,7 @@ export class Level {
     }
 
     membersPath(): string {
-        return `/dimensions/${this.hierarchy.dimension.name}/levels/${this.name}/members`;
+        return `/dimensions/${this.hierarchy.dimension.name}/hierarchies/${this.hierarchy.name}/levels/${this.name}/members`;
     }
 }
 
