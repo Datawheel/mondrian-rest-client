@@ -1,6 +1,6 @@
 {
   "name": "mondrian-rest-client",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "A client for mondrian-rest",
   "main": "lib/mondrian-rest.js",
   "typings": "lib/types/index.d.ts",
