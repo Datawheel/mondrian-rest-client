@@ -19,7 +19,9 @@ client.cube('tax_data')
 
 ## Installation
 
-`mondrian-rest-client` is not in NPM yet, install from GitHub or build it yourself.
+`mondrian-rest-client` is now in NPM, install via:
+
+`npm install mondrian-rest-client`
 
 ## Building
 
