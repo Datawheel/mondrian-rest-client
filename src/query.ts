@@ -127,12 +127,11 @@ export default class Query {
         if ('string' == typeof parts) {
             const measure: Measure = this.cube.findMeasure(parts);
             this.orderProp = `Measures.[${measure.name}]`;
-            this.orderDir = direction;
         } else {
             const property: string = this.getProperty(...parts);
             this.orderProp = property;
-            this.orderDir = direction;
         }
+        this.orderDir = direction;
         return this;
     }
 
