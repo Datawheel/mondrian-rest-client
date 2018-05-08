@@ -188,6 +188,14 @@ describe("Query with sorting parameters", function() {
     assert.deepEqual(qs['order_desc'], 'false');
   });
 
+  it('should accept a sorting by intrinsic property without order direction', function() {
+    q = query
+      .sorting(["ISICrev4", "Level 1", "Caption"]);
+    qs = querystring.parse(q.qs);
+    assert.deepEqual(qs['order'], '[ISICrev4].[Level 1].Caption');
+    assert.deepEqual(qs['order_desc'], undefined);
+  });
+
   it('should reject a sorting by an invalid measure', function() {
     assert.throws(function() {
       query.sorting("Level 1 ES", false);

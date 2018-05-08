@@ -1,6 +1,13 @@
 import { Annotations } from './annotations';
 import Cube from './cube';
 
+const INTRINSIC_PROPERTIES = [
+    'Caption',
+    'Key',
+    'Name',
+    'UniqueName'
+];
+
 export class Level {
     name: string;
     caption?: string;
@@ -31,7 +38,8 @@ export class Level {
     }
 
     hasProperty(propertyName: string): boolean {
-        return this.properties.indexOf(propertyName) !== -1;
+        return this.properties.indexOf(propertyName) > -1
+            || INTRINSIC_PROPERTIES.indexOf(propertyName) > -1;
     }
 
     membersPath(): string {
