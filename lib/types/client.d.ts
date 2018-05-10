@@ -6,6 +6,7 @@ import { Level } from './dimension';
 export default class Client {
     private api_base;
     private cubesCache;
+    private cubeCache;
     constructor(api_base: string);
     cubes(): Promise<Cube[]>;
     cube(name: string): Promise<Cube>;
