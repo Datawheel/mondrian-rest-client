@@ -30,6 +30,7 @@ export default class Query {
     pagination(limit: number, offset: number): this;
     sorting(parts: string | string[], direction: boolean): this;
     option(option: string, value: boolean): Query;
+    readonly qobj: any;
     readonly qs: string;
     path(format?: string): string;
     private getLevel(...parts);

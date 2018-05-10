@@ -1,6 +1,6 @@
 import formurlencoded = require('form-urlencoded');
 import urljoin = require('url-join');
-import * as isoFetch from 'isomorphic-fetch';
+import axios from 'axios';
 
 import Cube from './cube';
 import Query from './query';
@@ -60,16 +60,13 @@ export default class Client {
             return Promise.resolve(this.cubesCache);
         }
         else {
-            const p = isoFetch(urljoin(this.api_base, 'cubes'))
-                .then(rsp => rsp.json())
-                .then((value) => {
-                    const cubes: Cube[] = [];
-                    value['cubes'].forEach((j) => {
+            const p = axios.get(urljoin(this.api_base, 'cubes'))
+                .then(rsp => {
+                    return rsp.data['cubes'].map((j) => {
                         const c = Cube.fromJSON(j);
-                        cubes.push(c);
                         this.cubeCache[c.name] = c;
+                        return c;
                     });
-                    return cubes;
                 });
             this.cubesCache = p;
             return p;
@@ -81,9 +78,8 @@ export default class Client {
             return Promise.resolve(this.cubeCache[name]);
         }
         else {
-            const p = isoFetch(urljoin(this.api_base, 'cubes', name))
-                .then(rsp => rsp.json())
-                .then((value) => Cube.fromJSON(value));
+            const p = axios.get(urljoin(this.api_base, 'cubes', name))
+                .then(rsp => Cube.fromJSON(rsp.data));
             this.cubeCache[name] = p;
             return p;
         }
@@ -92,6 +88,7 @@ export default class Client {
     query(query: Query, format:string = "json", method:string = 'AUTO'): Promise<Aggregation> {
         let url = urljoin(this.api_base, query.path()),
         reqOptions = {
+            url,
             method: 'get',
             headers: {
                 'Accept': FORMATS[format]
@@ -104,30 +101,24 @@ export default class Client {
             method = url.length > MAX_GET_URI_LENGTH ? 'POST' : 'GET';
         }
         if (method == 'POST') {
-            url = urljoin(this.api_base, `/cubes/${query.cube.name}/aggregate`);
+            reqOptions.url = urljoin(this.api_base, `/cubes/${query.cube.name}/aggregate`);
             reqOptions.method = 'post';
             reqOptions.headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
-            reqOptions['body'] = query.qs;
+            reqOptions['data'] = query.qobj;
         }
 
-        return isoFetch(url, reqOptions)
+        return axios(reqOptions)
             .then(rsp => {
-                if (rsp.ok) {
-                    return rsp.json();
+                if (rsp.status > 199 && rsp.status < 300) {
+                    return new Aggregation(rsp.data, url, query.options);
                 }
                 else {
-                    return rsp.text()
-                        .then(t => {
-                            throw new MondrianClientError(rsp.status,
-                                                          rsp.statusText,
-                                                          t);
-                        });
+                    throw new MondrianClientError(rsp.status, rsp.statusText, rsp.data);
                 }
-            })
-            .then((value) => new Aggregation(value, url, query.options));
+            });
     }
 
-    members(level: Level, getChildren: boolean=false, caption:string=null): Promise<Member[]> {
+    members(level: Level, getChildren:boolean = false, caption:string = null): Promise<Member[]> {
         const cube = level.hierarchy.dimension.cube;
         const opts = {}
         if (getChildren) opts['children'] = true;
@@ -138,17 +129,13 @@ export default class Client {
 
         if (caption !== null) opts['caption'] = caption;
 
-        let qs = formurlencoded(opts);
-        if (qs.length > 1) qs = '?' + qs;
-
-        return isoFetch(urljoin(this.api_base, 'cubes', cube.name, level.membersPath())+qs)
-            .then(rsp => rsp.json())
-            .then((value) => {
-                return value['members'].map(Member.fromJSON);
-            });
+        return axios({
+            url: urljoin(this.api_base, 'cubes', cube.name, level.membersPath()),
+            params: opts
+        }).then(rsp => rsp.data['members'].map(Member.fromJSON));
     }
 
-    member(level: Level, key: string,getChildren: boolean=false, caption:string=null): Promise<Member> {
+    member(level: Level, key: string, getChildren:boolean = false, caption:string = null): Promise<Member> {
         const cube = level.hierarchy.dimension.cube;
            
         const opts = {}
@@ -163,10 +150,7 @@ export default class Client {
         let qs = formurlencoded(opts);
         if (qs.length > 1) qs = '?' + qs;
 
-        return isoFetch(urljoin(this.api_base, 'cubes', cube.name, level.membersPath(), key)+qs)
-            .then(rsp => rsp.json())
-            .then((value) => {
-                return Member.fromJSON(value);
-            });
+        return axios.get(urljoin(this.api_base, 'cubes', cube.name, level.membersPath(), key) + qs)
+            .then(rsp => Member.fromJSON(rsp.data));
     }
 }
