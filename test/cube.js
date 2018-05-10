@@ -99,6 +99,6 @@ describe('Level', function() {
 
     it('generates a path for getting a Level\'s members', function() {
         assert.equal(cube.dimensions[1].hierarchies[0].levels[1].membersPath(),
-                     '/dimensions/Tax Geography/levels/Region/members');
+                     '/dimensions/Tax Geography/hierarchies/Tax Geography/levels/Region/members');
     });
 });
