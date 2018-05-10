@@ -22,11 +22,11 @@ module.exports = [
     },
     externals: [
       {
-        'isomorphic-fetch': {
-          root: 'isomorphic-fetch',
-          commonjs2: 'isomorphic-fetch',
-          commonjs: 'isomorphic-fetch',
-          amd: 'isomorphic-fetch'
+        'axios': {
+          root: 'axios',
+          commonjs2: 'axios',
+          commonjs: 'axios',
+          amd: 'axios'
         }
       }
     ],

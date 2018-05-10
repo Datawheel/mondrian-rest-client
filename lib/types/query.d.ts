@@ -22,6 +22,7 @@ export default class Query {
     property(...parts: string[]): Query;
     caption(...parts: string[]): Query;
     option(option: string, value: boolean): Query;
+    readonly qobj: any;
     readonly qs: string;
     path(format?: string): string;
     private getLevel(...parts);

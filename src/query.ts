@@ -108,8 +108,8 @@ export default class Query {
         return this;
     }
 
-    get qs(): string {
-        const o = {
+    get qobj(): any {
+        return {
             drilldown: this.drilldowns ? this.drilldowns.map((d) => d.fullName) : undefined,
             cut: this.cuts,
             measures: this.measures ? this.measures.map((m) => m.name) : undefined,
@@ -121,8 +121,10 @@ export default class Query {
             debug: this.options['debug'],
             sparse: this.options['sparse']
         };
+    }
 
-        return formurlencoded(o);
+    get qs(): string {
+        return formurlencoded(this.qobj);
     }
 
     path(format?: string): string {
