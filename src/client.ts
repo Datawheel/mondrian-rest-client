@@ -95,8 +95,6 @@ export default class Client {
             }
         };
 
-        const qs = query.qs;
-
         if (method == 'AUTO') {
             method = url.length > MAX_GET_URI_LENGTH ? 'POST' : 'GET';
         }
@@ -104,7 +102,7 @@ export default class Client {
             reqOptions.url = urljoin(this.api_base, `/cubes/${query.cube.name}/aggregate`);
             reqOptions.method = 'post';
             reqOptions.headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
-            reqOptions['data'] = query.qobj;
+            reqOptions['data'] = query.qs;
         }
 
         return axios(reqOptions)
