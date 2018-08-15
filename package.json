@@ -1,6 +1,6 @@
 {
   "name": "mondrian-rest-client",
-  "version": "0.0.1",
+  "version": "1.0.3",
   "description": "A client for mondrian-rest",
   "main": "lib/mondrian-rest.js",
   "typings": "lib/types/index.d.ts",
@@ -36,9 +36,8 @@
     "xmlhttprequest": "^1.8.0"
   },
   "dependencies": {
-    "@types/isomorphic-fetch": "^0.0.34",
+    "axios": "^0.18.0",
     "form-urlencoded": "1.4.1",
-    "isomorphic-fetch": "^2.2.1",
     "url-join": "^1.1.0"
   }
 }
