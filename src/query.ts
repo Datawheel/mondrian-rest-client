@@ -118,8 +118,13 @@ export default class Query {
     }
 
     pagination(limit: number, offset: number) {
-        this.limit = limit || undefined;
-        this.offset = offset || undefined;
+        if (limit > 0) {
+            this.limit = limit;
+            this.offset = offset || 0;
+        } else {
+            this.limit = undefined;
+            this.offset = undefined;
+        }
         return this;
     }
 
