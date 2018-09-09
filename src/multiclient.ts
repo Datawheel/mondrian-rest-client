@@ -66,6 +66,10 @@ export default class MultiClient {
         );
     }
 
+    cube(cubeName: string): Promise<Cube> {
+        return this.cubes().then(cubes => cubes.find(cube => cube.name === cubeName));
+    }
+
     query(query: Query, format?: string, method?: string): Promise<Aggregation> {
         const cube: Cube = query.cube;
         return this.getClientByCube(cube).then(client =>

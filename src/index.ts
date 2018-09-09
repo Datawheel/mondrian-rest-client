@@ -1,9 +1,11 @@
-import Query from './query';
 import Client from './client';
 import Cube from './cube';
+import MultiClient from './multiclient';
+import Query from './query';
 
 export {
-    Query,
     Client,
-    Cube
+    Cube,
+    MultiClient,
+    Query,
 };
