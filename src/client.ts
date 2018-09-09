@@ -85,15 +85,15 @@ export default class Client {
         }
     }
 
-    query(query: Query, format:string = "json", method:string = 'AUTO'): Promise<Aggregation> {
+    query(query: Query, format: string = "json", method: string = 'AUTO'): Promise<Aggregation> {
         let url = urljoin(this.api_base, query.path()),
-        reqOptions = {
-            url,
-            method: 'get',
-            headers: {
-                'Accept': FORMATS[format]
-            }
-        };
+            reqOptions = {
+                url,
+                method: 'get',
+                headers: {
+                    'Accept': FORMATS[format]
+                }
+            };
 
         if (method == 'AUTO') {
             method = url.length > MAX_GET_URI_LENGTH ? 'POST' : 'GET';
@@ -116,7 +116,7 @@ export default class Client {
             });
     }
 
-    members(level: Level, getChildren:boolean = false, caption:string = null): Promise<Member[]> {
+    members(level: Level, getChildren: boolean = false, caption: string = null): Promise<Member[]> {
         const cube = level.hierarchy.dimension.cube;
         const opts = {}
         if (getChildren) opts['children'] = true;
@@ -133,9 +133,9 @@ export default class Client {
         }).then(rsp => rsp.data['members'].map(Member.fromJSON));
     }
 
-    member(level: Level, key: string, getChildren:boolean = false, caption:string = null): Promise<Member> {
+    member(level: Level, key: string, getChildren: boolean = false, caption: string = null): Promise<Member> {
         const cube = level.hierarchy.dimension.cube;
-           
+
         const opts = {}
         if (getChildren) opts['children'] = true;
 

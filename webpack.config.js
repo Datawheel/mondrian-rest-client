@@ -5,9 +5,9 @@ var packageJson = require("./package.json");
 var execSync = require('child_process').execSync;
 
 var LICENSE_HEADER =
-`mondrian-rest-client ${packageJson.version} (https://github.com/jazzido/mondrian-rest-client)
+`mondrian-rest-client ${packageJson.version} (https://github.com/Datawheel/mondrian-rest-client)
 rev ${execSync('git rev-parse --short HEAD')}
-Copyright 2017 Datawheel, LLC
+Copyright 2018 Datawheel, LLC
 Licensed under MIT`;
 
 module.exports = [
