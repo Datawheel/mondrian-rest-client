@@ -10,7 +10,8 @@
   "scripts": {
     "build:webpack": "webpack --config webpack.config.js",
     "build:tsc": "tsc",
-    "test": "tsc && mocha"
+    "build": "tsc && npm run build:webpack",
+    "test": "npm run build && mocha"
   },
   "repository": {
     "type": "git",
