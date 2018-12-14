@@ -1,22 +1,10 @@
-import Aggregation from "./aggregation";
-import Client from "./client";
-import Cube from "./cube";
-import Member from "./member";
-import Query from "./query";
-import { Level } from "./dimension";
-
-class MondrianMultiClientError extends Error {
-    public readonly body: any;
-    public readonly error: any;
-
-    constructor(message: string) {
-        super();
-        this.message = message;
-
-        // Set the prototype explicitly.
-        Object.setPrototypeOf(this, MondrianMultiClientError.prototype);
-    }
-}
+import Aggregation from './aggregation';
+import Client from './client';
+import Cube from './cube';
+import { Level } from './dimension';
+import { MultiClientError } from './errors';
+import Member from './member';
+import Query from './query';
 
 export default class MultiClient {
     private clientList: Client[];
@@ -30,7 +18,7 @@ export default class MultiClient {
         let client = this.clientMap.get(cube);
         if (client !== undefined) {
             return Promise.resolve(client);
-        } 
+        }
         else {
             return this.findClientByCube(cube);
         }
@@ -38,36 +26,36 @@ export default class MultiClient {
 
     findClientByCube(cube: Cube): Promise<Client> {
         const clientMap = this.clientMap;
-        const clientList: Client[] = this.clientList;
 
-        const clientTests = clientList.map(client => {
-            return client.cubes().then(cubes => {
-                return cubes.some(cb => cb === cube);
-            });
-        });
+        const clientTests = this.clientList.map(client =>
+            client.cubes().then(cubes => {
+                if (cubes.indexOf(cube) > -1) {
+                    clientMap.set(cube, client);
+                    return client;
+                }
+                return null;
+            })
+        );
 
-        return Promise.all(clientTests).then(testResults => {
-            const index = testResults.indexOf(true);
-            if (index > -1) {
-                const client = clientList[index];
-                clientMap.set(cube, client);
-                return client;
-            }
-            throw new MondrianMultiClientError(
-                "Invalid Cube for the current list of Clients."
-            );
-        });
+        return Promise.all(clientTests).then(results => results.find(Boolean));
     }
 
     cubes(): Promise<Cube[]> {
         const promiseCubeList = this.clientList.map(client => client.cubes());
         return Promise.all(promiseCubeList).then(cubeList =>
-            [].concat(...cubeList)
+            [].concat.apply([], cubeList)
         );
     }
 
-    cube(cubeName: string): Promise<Cube> {
-        return this.cubes().then(cubes => cubes.find(cube => cube.name === cubeName));
+    cube(cubeName: string, sorter: (matches: Cube[], clients: Client[]) => Cube): Promise<Cube> {
+        const clients = this.clientList.slice();
+        return this.cubes().then(cubes => {
+            const matches = cubes.filter(cube => cube.name === cubeName);
+            if (!sorter && matches.length > 1) {
+                throw new MultiClientError(`A cube named "${cubeName}" is present in more than one server.`);
+            }
+            return matches.length === 1 ? matches[0] : sorter(matches, clients);
+        });
     }
 
     query(query: Query, format?: string, method?: string): Promise<Aggregation> {

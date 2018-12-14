@@ -2,57 +2,29 @@ import formurlencoded = require('form-urlencoded');
 import urljoin = require('url-join');
 import axios from 'axios';
 
-import Cube from './cube';
-import Query from './query';
 import Aggregation from './aggregation';
-import Member from './member';
+import Cube from './cube';
 import { Level } from './dimension';
+import { MondrianRestError } from './errors';
+import Member from './member';
+import Query from './query';
 
 const FORMATS = {
-    'json': 'application/json',
-    'csv': 'text/csv',
-    'xls': 'application/vnd.ms-excel',
-    'jsonrecords': 'application/x-jsonrecords',
-    // 'jsonstat': 'application/x-jsonstat'
+    json: 'application/json',
+    csv: 'text/csv',
+    xls: 'application/vnd.ms-excel',
+    jsonrecords: 'application/x-jsonrecords'
 };
-
-class MondrianClientError extends Error {
-    public readonly status: number;
-    public readonly body: any;
-    public readonly error: any;
-
-    constructor(status: number, statusText: string, body: any) {
-        super();
-
-        this.status = status;
-        this.message = statusText;
-        this.body = body;
-
-        try {
-            this.error = JSON.parse(this.body).error;
-        }
-        catch (e) {
-            this.error = null;
-        }
-
-        // Set the prototype explicitly.
-        // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
-        Object.setPrototypeOf(this, MondrianClientError.prototype);
-    }
-}
 
 const MAX_GET_URI_LENGTH = 2000;
 
 export default class Client {
-
     private api_base: string;
-    private cubesCache: Cube[] | Promise<Cube[]>;
-    private cubeCache: { [cname: string]: Cube | Promise<Cube> };
+    private cubesCache: Promise<Cube[]>;
 
     constructor(api_base: string) {
         this.api_base = api_base;
         this.cubesCache = undefined;
-        this.cubeCache = {};
     }
 
     cubes(): Promise<Cube[]> {
@@ -60,32 +32,27 @@ export default class Client {
             return Promise.resolve(this.cubesCache);
         }
         else {
-            const p = axios.get(urljoin(this.api_base, 'cubes'))
-                .then(rsp => {
-                    return rsp.data['cubes'].map((j) => {
-                        const c = Cube.fromJSON(j);
-                        this.cubeCache[c.name] = c;
-                        return c;
-                    });
-                });
+            const server = this.api_base;
+            const p = axios.get(urljoin(server, 'cubes')).then(rsp => {
+                return rsp.data['cubes'].map(Cube.fromJSON);
+            });
             this.cubesCache = p;
             return p;
         }
     }
 
     cube(name: string): Promise<Cube> {
-        if (this.cubeCache[name] !== undefined) {
-            return Promise.resolve(this.cubeCache[name]);
+        if (this.cubesCache) {
+            return Promise.resolve(this.cubesCache).then(cubes =>
+                cubes.find(cb => cb.name === name)
+            );
         }
-        else {
-            const p = axios.get(urljoin(this.api_base, 'cubes', name))
-                .then(rsp => Cube.fromJSON(rsp.data));
-            this.cubeCache[name] = p;
-            return p;
-        }
+        return axios.get(urljoin(this.api_base, 'cubes', name)).then(rsp =>
+            Cube.fromJSON(rsp.data)
+        );
     }
 
-    query(query: Query, format: string = "json", method: string = 'AUTO'): Promise<Aggregation> {
+    query(query: Query, format: string = 'json', method: string = 'AUTO'): Promise<Aggregation> {
         let url = urljoin(this.api_base, query.path()),
             reqOptions = {
                 url,
@@ -105,20 +72,17 @@ export default class Client {
             reqOptions['data'] = query.qs;
         }
 
-        return axios(reqOptions)
-            .then(rsp => {
-                if (rsp.status > 199 && rsp.status < 300) {
-                    return new Aggregation(rsp.data, url, query.options);
-                }
-                else {
-                    throw new MondrianClientError(rsp.status, rsp.statusText, rsp.data);
-                }
-            });
+        return axios(reqOptions).then(rsp => {
+            if (rsp.status > 199 && rsp.status < 300) {
+                return new Aggregation(rsp.data, url, query.options);
+            }
+            throw new MondrianRestError(rsp);
+        });
     }
 
     members(level: Level, getChildren: boolean = false, caption: string = null): Promise<Member[]> {
         const cube = level.hierarchy.dimension.cube;
-        const opts = {}
+        const opts = {};
         if (getChildren) opts['children'] = true;
 
         if (caption !== null && !level.hasProperty(caption)) {
@@ -135,8 +99,7 @@ export default class Client {
 
     member(level: Level, key: string, getChildren: boolean = false, caption: string = null): Promise<Member> {
         const cube = level.hierarchy.dimension.cube;
-
-        const opts = {}
+        const opts = {};
         if (getChildren) opts['children'] = true;
 
         if (caption !== null && !level.hasProperty(caption)) {
@@ -148,7 +111,8 @@ export default class Client {
         let qs = formurlencoded(opts);
         if (qs.length > 1) qs = '?' + qs;
 
-        return axios.get(urljoin(this.api_base, 'cubes', cube.name, level.membersPath(), key) + qs)
+        return axios
+            .get(urljoin(this.api_base, 'cubes', cube.name, level.membersPath(), key) + qs)
             .then(rsp => Member.fromJSON(rsp.data));
     }
 }
