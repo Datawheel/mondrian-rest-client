@@ -120,6 +120,7 @@ export default class Client {
     member(level: Level, key: string, getChildren: boolean = false, caption: string = null): Promise<Member> {
         const cube = level.hierarchy.dimension.cube;
         const opts = {};
+
         if (getChildren) opts['children'] = true;
 
         if (caption !== null && !level.hasProperty(caption)) {

@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/Datawheel/mondrian-rest-client",
   "devDependencies": {
+    "@types/node": "^10.9.4",
     "@types/url-join": "^0.8.1",
     "babel-core": "^6.23.1",
     "babel-loader": "^6.3.0",
