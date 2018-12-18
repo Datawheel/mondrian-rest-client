@@ -1,6 +1,7 @@
 import formurlencoded = require('form-urlencoded');
 import urljoin = require('url-join');
 import axios from 'axios';
+import { unique } from 'shorthash';
 
 import Aggregation from './aggregation';
 import Cube from './cube';
@@ -22,9 +23,12 @@ export default class Client {
     private api_base: string;
     private cubesCache: Promise<Cube[]>;
 
+    key: string;
+
     constructor(api_base: string) {
         this.api_base = api_base;
         this.cubesCache = undefined;
+        this.key = unique(api_base);
     }
 
     cubes(): Promise<Cube[]> {
@@ -33,8 +37,9 @@ export default class Client {
         }
         else {
             const server = this.api_base;
+            const cubeBuilder = Cube.fromJSON.bind(Cube, this.key);
             const p = axios.get(urljoin(server, 'cubes')).then(rsp => {
-                return rsp.data['cubes'].map(Cube.fromJSON);
+                return rsp.data['cubes'].map(cubeBuilder);
             });
             this.cubesCache = p;
             return p;
@@ -47,8 +52,9 @@ export default class Client {
                 cubes.find(cb => cb.name === name)
             );
         }
+        const key = this.key;
         return axios.get(urljoin(this.api_base, 'cubes', name)).then(rsp =>
-            Cube.fromJSON(rsp.data)
+            Cube.fromJSON(key, rsp.data)
         );
     }
 

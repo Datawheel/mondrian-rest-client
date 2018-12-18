@@ -1,3 +1,5 @@
+import { unique } from 'shorthash';
+
 import Measure from './measure';
 import Dimension, { DimensionType } from './dimension';
 import { Annotations } from './annotations';
@@ -5,7 +7,8 @@ import NamedSet from './namedSet';
 import Query from './query';
 
 export default class Cube {
-
+    clientKey : string;
+    key: string;
     name: string;
     caption: string;
     dimensions: Dimension[];
@@ -15,12 +18,15 @@ export default class Cube {
 
     dimensionsByName: { [d: string]: Dimension };
 
-    constructor(name: string,
+    constructor(clientKey: string,
+                name: string,
                 dimensions: Dimension[],
                 namedSets: NamedSet[],
                 measures: Measure[],
                 annotations: Annotations) {
 
+        this.clientKey = clientKey;
+        this.key = unique(`${clientKey} ${name}`);
         this.name = name;
         this.caption = this.annotations['caption'] || name;
         this.measures = measures;
@@ -34,12 +40,13 @@ export default class Cube {
         }, {});
     }
 
-    static fromJSON(json: {}): Cube {
+    static fromJSON(clientKey: string, json: any): Cube {
         if (!json['named_sets']) json['named_sets'] = [];
 
         const dimensions: Dimension[] = json['dimensions'].map(Dimension.fromJSON);
 
-        return new Cube(json['name'],
+        return new Cube(clientKey,
+                        json['name'],
                         dimensions,
                         json['named_sets'].map(ns => {
                             return new NamedSet(ns['name'],
