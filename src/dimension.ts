@@ -42,7 +42,10 @@ export class Level {
             || INTRINSIC_PROPERTIES.indexOf(propertyName) > -1;
     }
 
-    membersPath(): string {
+    membersPath(legacy?: boolean): string {
+        if (legacy) {
+            return `/dimensions/${this.hierarchy.dimension.name}/levels/${this.name}/members`;
+        }
         return `/dimensions/${this.hierarchy.dimension.name}/hierarchies/${this.hierarchy.name}/levels/${this.name}/members`;
     }
 }

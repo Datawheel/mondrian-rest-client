@@ -9,8 +9,7 @@ describe('Client', function () {
 
     let client;
     beforeEach(function () {
-        client = new Client('https://katahdin-api.datausa.io');
-        //client = new Client('http://hermes:5000');
+        client = new Client('https://chilecube.staging.datachile.io');
     });
 
     /*
@@ -57,11 +56,7 @@ describe('Client', function () {
                 );
             })
             .then(function (members) {
-                // TODO add assertions
-                //console.log(members);
-                // return client.cube("tax_data").then(function(cube) {
-                //   console.log("SHOUD BE CACHED");
-                // });
+                assert.equal(members.length, 346);
             });
     });
 
@@ -76,8 +71,8 @@ describe('Client', function () {
                 );
             })
             .then(function (members) {
-                // TODO add assertions
-                console.log(members);
+                const testMember = members.find(member => member.key === "01");
+                assert.equal(testMember.caption, "Productos de Origen Animal");
             });
     });
 

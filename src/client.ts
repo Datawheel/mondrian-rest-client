@@ -22,6 +22,7 @@ const MAX_GET_URI_LENGTH = 2000;
 export default class Client {
     private api_base: string;
     private cubesCache: Promise<Cube[]>;
+    private legacy: boolean = false;
 
     key: string;
 
@@ -29,6 +30,10 @@ export default class Client {
         this.api_base = api_base;
         this.cubesCache = undefined;
         this.key = unique(api_base);
+    }
+
+    private setLegacyServer(): void {
+        this.legacy = true;
     }
 
     cubes(): Promise<Cube[]> {
@@ -98,9 +103,18 @@ export default class Client {
         if (caption !== null) opts['caption'] = caption;
 
         return axios({
-            url: urljoin(this.api_base, 'cubes', cube.name, level.membersPath()),
+            url: urljoin(this.api_base, 'cubes', cube.name, level.membersPath(this.legacy)),
             params: opts
-        }).then(rsp => rsp.data['members'].map(Member.fromJSON));
+        }).then(
+            rsp => rsp.data['members'].map(Member.fromJSON),
+            err => {
+                if (err.response.status === 404) {
+                    this.setLegacyServer();
+                    return this.members(level, getChildren, caption);
+                }
+                throw err;
+            }
+        );
     }
 
     member(level: Level, key: string, getChildren: boolean = false, caption: string = null): Promise<Member> {
@@ -118,7 +132,16 @@ export default class Client {
         if (qs.length > 1) qs = '?' + qs;
 
         return axios
-            .get(urljoin(this.api_base, 'cubes', cube.name, level.membersPath(), key) + qs)
-            .then(rsp => Member.fromJSON(rsp.data));
+            .get(urljoin(this.api_base, 'cubes', cube.name, level.membersPath(this.legacy), key) + qs)
+            .then(
+                rsp => Member.fromJSON(rsp.data),
+                err => {
+                    if (err.response.status === 404) {
+                        this.setLegacyServer();
+                        return this.member(level, key, getChildren, caption);
+                    }
+                    throw err;
+                }
+            );
     }
 }

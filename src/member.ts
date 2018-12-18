@@ -13,7 +13,7 @@ export default class Member {
 
     constructor(name: string, fullName: string, caption: string, allMember: boolean,
         drillable: boolean, depth: number, key: string,
-        numChildren: number, children: Member[],ancestors: Member[], parentName: string) {
+        numChildren: number, children: Member[], ancestors: Member[], parentName: string) {
 
         this.name = name;
         this.fullName = fullName;
@@ -29,9 +29,9 @@ export default class Member {
     }
 
     static fromJSON(json: {}): Member {
-        return new Member(json['name'], json['full_name'], json['caption'], 
-                json['all_member?'], json['drillable?'], 
-                json['depth'], json['key'], json['num_children'], 
+        return new Member(json['name'], json['full_name'], json['caption'],
+                json['all_member?'], json['drillable?'],
+                json['depth'], json['key'], json['num_children'],
                 json['children'].map(Member.fromJSON),
                 (json['ancestors'])?json['ancestors'].map(Member.fromJSON):[],
                 json['parent_name']);
