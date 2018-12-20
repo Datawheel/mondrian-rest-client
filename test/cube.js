@@ -9,7 +9,7 @@ describe('Cube', function() {
     let response, cube;
     beforeEach(function() {
         response = require('./fixtures/cube_response.json');
-        cube = Cube.fromJSON(response);
+        cube = Cube.fromJSON('', response);
     });
 
 
@@ -33,7 +33,7 @@ describe('Cube with annotations', function() {
   let response, cube;
   beforeEach(function() {
     response = require('./fixtures/cube_with_annotations.json');
-    cube = Cube.fromJSON(response);
+    cube = Cube.fromJSON('', response);
   });
 
   it('contains annotations in Cube', function() {
@@ -58,7 +58,7 @@ describe('Cube with properties', function() {
     let response, cube;
     beforeEach(function() {
         response = require('./fixtures/tax_data.json');
-        cube = Cube.fromJSON(response);
+        cube = Cube.fromJSON('', response);
     });
 
     it('parses Level properties', function() {
@@ -75,7 +75,7 @@ describe('Cube with named set', function() {
 
     beforeEach(function() {
         response = require('./fixtures/cube_with_named_set.json');
-        cube = Cube.fromJSON(response);
+        cube = Cube.fromJSON('', response);
     });
 
     it('parses named_sets', function() {
@@ -94,11 +94,16 @@ describe('Level', function() {
     let response, cube;
     beforeEach(function() {
         response = require('./fixtures/tax_data.json');
-        cube = Cube.fromJSON(response);
+        cube = Cube.fromJSON('', response);
     });
 
     it('generates a path for getting a Level\'s members', function() {
         assert.equal(cube.dimensions[1].hierarchies[0].levels[1].membersPath(),
                      '/dimensions/Tax Geography/hierarchies/Tax Geography/levels/Region/members');
+    });
+
+    it('generates a path for getting a Level\'s members from server using an older version of mondrian-rest', function() {
+        assert.equal(cube.dimensions[1].hierarchies[0].levels[1].membersPath(true),
+                     '/dimensions/Tax Geography/levels/Region/members');
     });
 });

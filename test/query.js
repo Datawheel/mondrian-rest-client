@@ -11,7 +11,7 @@ let Cube = mrc.Cube;
 describe('Query', function() {
     let cube, query;
     beforeEach(function() {
-        cube = Cube.fromJSON(response);
+        cube = Cube.fromJSON('', response);
         query = cube.query;
     });
 
@@ -69,7 +69,7 @@ describe('Query with properties', function() {
     let response, cube, query;
     beforeEach(function() {
         response = require('./fixtures/tax_data.json');
-        cube = Cube.fromJSON(response);
+        cube = Cube.fromJSON('', response);
         query = cube.query;
     });
 
@@ -90,7 +90,7 @@ describe('Query with caption', function() {
     let response, cube, query;
     beforeEach(function() {
         response = require('./fixtures/tax_data.json');
-        cube = Cube.fromJSON(response);
+        cube = Cube.fromJSON('', response);
         query = cube.query;
     });
 
@@ -105,7 +105,7 @@ describe('Query with drilldown on namedset', function() {
 
   beforeEach(function() {
     response = require('./fixtures/another_cube_with_named_set.json');
-    cube = Cube.fromJSON(response);
+    cube = Cube.fromJSON('', response);
     query = cube.query;
   });
 
@@ -124,7 +124,7 @@ describe("Query with filter measures", function() {
   let response, cube, query;
   beforeEach(function() {
     response = require('./fixtures/tax_data.json');
-    cube = Cube.fromJSON(response);
+    cube = Cube.fromJSON('', response);
     query = cube.query;
   });
 
@@ -152,7 +152,7 @@ describe("Query with sorting parameters", function() {
   let response, cube, query;
   beforeEach(function() {
     response = require('./fixtures/tax_data.json');
-    cube = Cube.fromJSON(response);
+    cube = Cube.fromJSON('', response);
     query = cube.query;
   });
 
@@ -213,7 +213,7 @@ describe("Query with pagination parameters", function() {
   let response, cube, query;
   beforeEach(function() {
     response = require('./fixtures/tax_data.json');
-    cube = Cube.fromJSON(response);
+    cube = Cube.fromJSON('', response);
     query = cube.query;
   });
 
