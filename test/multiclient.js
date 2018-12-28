@@ -14,6 +14,11 @@ describe('MultiClient', function() {
       client = new MultiClient([serverA, serverB]);
     });
 
+    it("should accept a string as main parameter", function() {
+        const mclient = new MultiClient(serverA);
+        assert.equal(mclient.clientList.length, 1);
+    });
+
     it("can retrieve a cube by name", function() {
         return client.cube("dot_faf").then(cube => {
             assert.equal(cube.name, "dot_faf");

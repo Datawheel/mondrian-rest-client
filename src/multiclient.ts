@@ -10,8 +10,9 @@ export default class MultiClient {
     private clientList: Client[];
     private clientMap: WeakMap<Cube, Client> = new WeakMap();
 
-    constructor(api_list: string[]) {
-        this.clientList = api_list.map(api_base => new Client(api_base));
+    constructor(bases: string[]) {
+        const apiList = [].concat(bases);
+        this.clientList = apiList.map(apiUrl => new Client(apiUrl));
     }
 
     getClientByCube(cube: Cube): Client {
