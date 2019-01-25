@@ -64,10 +64,11 @@ export default class Client {
     }
 
     query(query: Query, format: string = 'json', method: string = 'AUTO'): Promise<Aggregation> {
-        let url = urljoin(this.api_base, query.path()),
+        const queryPath = query.path(format);
+        let url = urljoin(this.api_base, queryPath),
             reqOptions = {
                 url,
-                method: 'get',
+                method: 'GET',
                 headers: {
                     'Accept': FORMATS[format]
                 }
@@ -77,8 +78,8 @@ export default class Client {
             method = url.length > MAX_GET_URI_LENGTH ? 'POST' : 'GET';
         }
         if (method == 'POST') {
-            reqOptions.url = urljoin(this.api_base, `/cubes/${query.cube.name}/aggregate`);
-            reqOptions.method = 'post';
+            reqOptions.url = queryPath.split('?', 1).shift();
+            reqOptions.method = 'POST';
             reqOptions.headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
             reqOptions['data'] = query.qs;
         }

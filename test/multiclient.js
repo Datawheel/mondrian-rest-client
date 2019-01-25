@@ -7,7 +7,7 @@ const MultiClient = mrc.MultiClient;
 describe('MultiClient', function() {
     this.timeout(10000);
 
-    const serverA = 'https://mammoth-api.datausa.io';
+    const serverA = 'https://redwood-api.datausa.io';
     const serverB = 'https://chilecube.staging.datachile.io';
     let client;
     beforeEach(function() {
@@ -64,9 +64,9 @@ describe('MultiClient', function() {
                 dataB: Array.isArray(result[1].data.values),
             }, {
                 total: 2,
-                urlA: serverA + '/cubes/dot_faf/aggregate?drilldown%5B%5D=%5BOrigin%5D.%5BOrigin+State%5D&cut%5B%5D=%5BDestination%5D.%5BDestination+State%5D.%26%5B04000US12%5D&measures%5B%5D=Millions+Of+Dollars&nonempty=true&distinct=false&parents=false&debug=false&sparse=true',
+                urlA: serverA + '/cubes/dot_faf/aggregate.json?drilldown%5B%5D=%5BOrigin%5D.%5BOrigin+State%5D&cut%5B%5D=%5BDestination%5D.%5BDestination+State%5D.%26%5B04000US12%5D&measures%5B%5D=Millions+Of+Dollars&nonempty=true&distinct=false&parents=false&debug=false&sparse=true',
                 dataA: true,
-                urlB: serverB + '/cubes/election_participation/aggregate?drilldown%5B%5D=%5BGeography%5D.%5BRegion%5D&cut%5B%5D=%5BElection+Type%5D.%5BElection+Type%5D.%26%5B3%5D&measures%5B%5D=Electors&nonempty=true&distinct=false&parents=false&debug=false&sparse=true',
+                urlB: serverB + '/cubes/election_participation/aggregate.json?drilldown%5B%5D=%5BGeography%5D.%5BRegion%5D&cut%5B%5D=%5BElection+Type%5D.%5BElection+Type%5D.%26%5B3%5D&measures%5B%5D=Electors&nonempty=true&distinct=false&parents=false&debug=false&sparse=true',
                 dataB: true
             });
         });

@@ -1,18 +1,18 @@
-let path = require('path');
-let assert = require('assert');
+let path = require("path");
+let assert = require("assert");
 
-let mrc = require(path.join(__dirname, '..', 'lib', 'mondrian-rest'));
+let mrc = require(path.join(__dirname, "..", "lib", "mondrian-rest"));
 let Client = mrc.Client;
 
-describe('Client', function () {
-    this.timeout(5000);
+describe("Client", function() {
+  this.timeout(5000);
 
-    let client;
-    beforeEach(function () {
-        client = new Client('https://chilecube.staging.datachile.io');
-    });
+  let client;
+  beforeEach(function() {
+    client = new Client("https://chilecube.staging.datachile.io");
+  });
 
-    /*
+  /*
     it('get a cube from server', function() {
         let c = client.cube('imports');
         return c.then(function(c) {
@@ -47,36 +47,77 @@ describe('Client', function () {
     });
 */
 
-    it("returns the members of a level", function () {
-        return client
-            .cube("tax_data")
-            .then(function (cube) {
-                return client.members(
-                    cube.dimensionsByName["Tax Geography"].hierarchies[0].levels[2]
-                );
-            })
-            .then(function (members) {
-                assert.equal(members.length, 346);
-            });
-    });
+  it("returns a query without specifying format as json", function() {
+    return client
+      .cube("election_participation")
+      .then(function(cube) {
+        const query = cube.query;
+        query.drilldown("Geography", "Region");
+        query.measure("Electors");
+        query.cut("[Election Type].[Election Type].&[3]");
+        return client.query(query);
+      })
+      .then(function(result) {
+        const data = result.data;
+        const oldServer = Array.isArray(data.axis_dimensions);
+        const newServer = Array.isArray(data.cell_keys) && data.hasOwnProperty("mdx");
+        assert(
+          result.url.indexOf("aggregate.json?") > -1 &&
+            Array.isArray(data.axes) &&
+            Array.isArray(data.values) &&
+            (oldServer || newServer)
+        );
+      });
+  });
 
-    it("returns the members of a level and replaces their caption with the requested property", function () {
-        return client
-            .cube("exports")
-            .then(function (cube) {
-                return client.members(
-                    cube.dimensionsByName["Export HS"].hierarchies[0].levels[1],
-                    false,
-                    "HS0 ES"
-                );
-            })
-            .then(function (members) {
-                const testMember = members.find(member => member.key === "01");
-                assert.equal(testMember.caption, "Productos de Origen Animal");
-            });
-    });
+  it("returns a query in jsonrecords format", function() {
+    return client
+      .cube("election_participation")
+      .then(function(cube) {
+        const query = cube.query;
+        query.drilldown("Geography", "Region");
+        query.measure("Electors");
+        query.cut("[Election Type].[Election Type].&[3]");
+        return client.query(query, "jsonrecords");
+      })
+      .then(function(result) {
+        assert(
+          result.url.indexOf("aggregate.jsonrecords?") > -1 &&
+            Array.isArray(result.data.data)
+        );
+      });
+  });
 
-    /*    it('correctly behaves on a 400 error', function() {
+  it("returns the members of a level", function() {
+    return client
+      .cube("tax_data")
+      .then(function(cube) {
+        return client.members(
+          cube.dimensionsByName["Tax Geography"].hierarchies[0].levels[2]
+        );
+      })
+      .then(function(members) {
+        assert.equal(members.length, 346);
+      });
+  });
+
+  it("returns the members of a level and replaces their caption with the requested property", function() {
+    return client
+      .cube("exports")
+      .then(function(cube) {
+        return client.members(
+          cube.dimensionsByName["Export HS"].hierarchies[0].levels[1],
+          false,
+          "HS0 ES"
+        );
+      })
+      .then(function(members) {
+        const testMember = members.find(member => member.key === "01");
+        assert.equal(testMember.caption, "Productos de Origen Animal");
+      });
+  });
+
+  /*    it('correctly behaves on a 400 error', function() {
           let c = client.cube('income_gini');
           return c.then(function(cube) {
               return client.query(
