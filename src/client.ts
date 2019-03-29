@@ -134,16 +134,7 @@ export default class Client {
         if (qs.length > 1) qs = '?' + qs;
 
         return axios
-            .get(urljoin(this.api_base, 'cubes', cube.name, level.membersPath(this.legacy), key) + qs)
-            .then(
-                rsp => Member.fromJSON(rsp.data),
-                err => {
-                    if (err.response.status === 404) {
-                        this.setLegacyServer();
-                        return this.member(level, key, getChildren, caption);
-                    }
-                    throw err;
-                }
-            );
+            .get(urljoin(this.api_base, 'cubes', cube.name, level.membersPath(true), key) + qs)
+            .then(rsp => Member.fromJSON(rsp.data));
     }
 }
