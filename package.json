@@ -1,46 +1,64 @@
 {
   "name": "mondrian-rest-client",
-  "version": "1.1.3",
-  "description": "A client for mondrian-rest",
-  "main": "lib/mondrian-rest.js",
-  "typings": "lib/types/index.d.ts",
-  "browser": {
-    "mondrian-rest-client/node_modules/axios/lib/adapters/http.js": "mondrian-rest-client/node_modules/axios/lib/adapters/xhr.js"
-  },
+  "version": "2.0.0",
+  "description": "A javascript client for mondrian-rest.",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "types": "types/index.d.ts",
+  "readme": "README.md",
+  "files": [
+    "dist",
+    "types"
+  ],
   "scripts": {
-    "build:webpack": "webpack --config webpack.config.js",
-    "build:tsc": "tsc",
-    "build": "tsc && npm run build:webpack",
-    "test": "npm run build && mocha"
+    "pretest": "cross-env NODE_ENV=test BABEL_ENV=test rollup --config rollup.config.js",
+    "test": "cross-env NODE_ENV=test BABEL_ENV=test jest --config=jest.config.js",
+    "dev": "cross-env NODE_ENV=development BABEL_ENV=development rollup --config rollup.config.js --watch",
+    "build": "cross-env NODE_ENV=production BABEL_ENV=production rollup --config rollup.config.js"
   },
+  "author": "Manuel Aristaran",
+  "contributors": [
+    "Francisco Abarzua <francisco@datawheel.us>"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/Datawheel/mondrian-rest-client",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Datawheel/mondrian-rest-client.git"
   },
-  "author": "Manuel Aristaran",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/Datawheel/mondrian-rest-client/issues"
   },
-  "homepage": "https://github.com/Datawheel/mondrian-rest-client",
-  "devDependencies": {
-    "@types/node": "^10.9.4",
-    "@types/url-join": "^0.8.1",
-    "babel-core": "^6.23.1",
-    "babel-loader": "^6.3.0",
-    "babel-preset-es2015": "^6.22.0",
-    "babel-preset-stage-0": "^6.22.0",
-    "mocha": "^5.2.0",
-    "tslint": "^4.4.2",
-    "typescript": "^2.4.1",
-    "webpack": "^2.2.1",
-    "write-file-webpack-plugin": "^3.4.2",
-    "xmlhttprequest": "^1.8.0"
-  },
+  "keywords": [
+    "dataset",
+    "datawheel",
+    "olap",
+    "mondrian",
+    "mondrian-rest"
+  ],
   "dependencies": {
-    "axios": "^0.18.0",
-    "form-urlencoded": "1.4.1",
-    "shorthash": "0.0.2",
-    "url-join": "^1.1.0"
+    "axios": "^0.19.0",
+    "form-urlencoded": "4.0.0",
+    "url-join": "^4.0.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/plugin-transform-runtime": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/runtime": "^7.5.5",
+    "@types/form-urlencoded": "^2.0.1",
+    "@types/url-join": "^4.0.0",
+    "babel-jest": "^24.8.0",
+    "cross-env": "^5.2.0",
+    "jest": "^24.8.0",
+    "rollup": "^1.19.2",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-cleanup": "^3.1.1",
+    "rollup-plugin-commonjs": "^10.0.2",
+    "rollup-plugin-license": "^0.10.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-replace": "^2.2.0",
+    "rollup-plugin-typescript2": "^0.22.1",
+    "typescript": "^3.5.3"
   }
 }

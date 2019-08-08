@@ -1,66 +1,84 @@
-import Aggregation from './aggregation';
-import Client from './client';
-import Cube from './cube';
-import { Level } from './dimension';
-import { MultiClientError } from './errors';
-import Member from './member';
-import Query from './query';
+import Client from "./client";
+import {AllowedFormat} from "./common";
+import Cube from "./cube";
+import {ClientError} from "./errors";
+import {Aggregation, ServerStatus} from "./interfaces";
+import Level from "./level";
+import Member from "./member";
+import Query from "./query";
 
-export default class MultiClient {
-    private clientList: Client[];
-    private clientMap: WeakMap<Cube, Client> = new WeakMap();
+class MultiClient {
+  private clients: {[server: string]: Client} = {};
 
-    constructor(bases: string[]) {
-        const apiList = [].concat(bases);
-        this.clientList = apiList.map(apiUrl => new Client(apiUrl));
-    }
+  constructor(serverUrls: string[]) {
+    const clients = this.clients;
+    [].concat(serverUrls).forEach(server => {
+      if (server) {
+        clients[server] = new Client(server);
+      }
+    });
+  }
 
-    getClientByCube(cube: Cube): Client {
-        return this.clientMap.get(cube) || this.findClientByCube(cube);
-    }
+  get clientList() {
+    const clients = this.clients;
+    return Object.keys(clients).map(server => clients[server]);
+  }
 
-    findClientByCube(cube: Cube): Client {
-        const clientMap = this.clientMap;
-        const client = this.clientList.find(client => client.key === cube.clientKey);
-        clientMap.set(cube, client);
-        return client;
-    }
+  checkStatus(): Promise<{[server: string]: ServerStatus | Error}> {
+    const statusMap: {[server: string]: ServerStatus | Error} = {};
+    const tasks = this.clientList.map((client: Client) => {
+      const saveResult = (result: ServerStatus | Error) => {
+        statusMap[client.baseUrl] = result;
+      };
+      return client.checkStatus().then(saveResult, saveResult);
+    });
+    return Promise.all(tasks).then(() => statusMap);
+  }
 
-    cubes(): Promise<Cube[]> {
-        const promiseCubeList = this.clientList.map(client => client.cubes());
-        return Promise.all(promiseCubeList).then(cubeList =>
-            [].concat.apply([], cubeList)
-        );
-    }
+  cube(
+    cubeName: string,
+    sorterFn: (matches: Cube[], clients: Client[]) => Cube
+  ): Promise<Cube> {
+    const clientList = this.clientList;
+    return this.cubes().then(cubes => {
+      const matches = cubes.filter(cube => cube.name === cubeName);
+      if (!sorterFn && matches.length > 1) {
+        throw new ClientError(`A cube named '${cubeName}' is present in more than one server. Define a sorter function to get the right cube.`);
+      }
+      return matches.length === 1 ? matches[0] : sorterFn(matches, clientList);
+    });
+  }
 
-    cube(cubeName: string, sorter: (matches: Cube[], clients: Client[]) => Cube): Promise<Cube> {
-        const clients = this.clientList.slice();
-        return this.cubes().then(cubes => {
-            const matches = cubes.filter(cube => cube.name === cubeName);
-            if (!sorter && matches.length > 1) {
-                throw new MultiClientError(
-                    `A cube named '${cubeName}' is present in more than one server.`
-                );
-            }
-            return matches.length === 1 ? matches[0] : sorter(matches, clients);
-        });
-    }
+  cubes(): Promise<Cube[]> {
+    const clients = this.clients;
+    const promiseCubeList = Object.keys(clients).map(server => clients[server].cubes());
+    return Promise.all(promiseCubeList).then(cubeList => [].concat(...cubeList));
+  }
 
-    query(query: Query, format?: string, method?: string): Promise<Aggregation> {
-        const cube: Cube = query.cube;
-        const client = this.getClientByCube(cube);
-        return client.query(query, format, method);
-    }
+  execQuery(query: Query, format?: AllowedFormat, method?: string): Promise<Aggregation> {
+    const cube: Cube = query.cube;
+    const client = this.getClientByCube(cube);
+    return client.execQuery(query, format, method);
+  }
 
-    members(level: Level, getChildren?: boolean, caption?: string): Promise<Member[]> {
-        const cube: Cube = level.hierarchy.dimension.cube;
-        const client = this.getClientByCube(cube);
-        return client.members(level, getChildren, caption);
-    }
+  getClientByCube(cube: Cube): Client {
+    return this.clients[cube.server];
+  }
 
-    member(level: Level, key: string, getChildren?: boolean, caption?: string): Promise<Member> {
-        const cube: Cube = level.hierarchy.dimension.cube;
-        const client = this.getClientByCube(cube);
-        return client.member(level, key, getChildren, caption);
-    }
+  member(
+    level: Level,
+    key: string,
+    getChildren?: boolean,
+    caption?: string
+  ): Promise<Member> {
+    const client = this.getClientByCube(level.cube);
+    return client.member(level, key, getChildren, caption);
+  }
+
+  members(level: Level, getChildren?: boolean, caption?: string): Promise<Member[]> {
+    const client = this.getClientByCube(level.cube);
+    return client.members(level, getChildren, caption);
+  }
 }
+
+export default MultiClient;

@@ -1,140 +1,199 @@
-import formurlencoded = require('form-urlencoded');
-import urljoin = require('url-join');
-import axios from 'axios';
-import { unique } from 'shorthash';
+import axios, {AxiosError, AxiosResponse} from "axios";
+import urljoin from "url-join";
+import {AllowedFormat, FORMATS, MAX_GET_URI_LENGTH} from "./common";
+import Cube from "./cube";
+import {ClientError, ServerError} from "./errors";
+import {Aggregation, Annotations, ServerStatus} from "./interfaces";
+import Level from "./level";
+import Member from "./member";
+import Query from "./query";
 
-import Aggregation from './aggregation';
-import Cube from './cube';
-import { Level } from './dimension';
-import { MondrianRestError } from './errors';
-import Member from './member';
-import Query from './query';
+class Client {
+  public annotations: Annotations = {};
+  public baseUrl: string = "";
+  public serverOnline: string = "";
+  public serverVersion: string = "";
 
-const FORMATS = {
-    json: 'application/json',
-    csv: 'text/csv',
-    xls: 'application/vnd.ms-excel',
-    jsonrecords: 'application/x-jsonrecords'
-};
+  private cacheCube: {[key: string]: Promise<Cube>} = {};
+  private cacheCubes: Promise<Cube[]>;
 
-const MAX_GET_URI_LENGTH = 2000;
-
-export default class Client {
-    private api_base: string;
-    private cubesCache: Promise<Cube[]>;
-    private legacy: boolean = false;
-
-    key: string;
-
-    constructor(api_base: string) {
-        this.api_base = api_base;
-        this.cubesCache = undefined;
-        this.key = unique(api_base);
+  constructor(url: string) {
+    if (!url) {
+      throw new ClientError(`Please specify a valid mondrian-rest server URL.`);
     }
+    this.baseUrl = url;
+  }
 
-    private setLegacyServer(): void {
-        this.legacy = true;
-    }
+  checkStatus(): Promise<ServerStatus> {
+    return this.cubes().then(
+      _ => {
+        this.serverOnline = "ok";
+        this.serverVersion = "";
+        return {
+          status: this.serverOnline,
+          url: this.baseUrl,
+          version: this.serverVersion
+        };
+      },
+      (err: AxiosError) => {
+        this.serverOnline = "unavailable";
+        throw err;
+      }
+    );
+  }
 
-    cubes(): Promise<Cube[]> {
-        if (this.cubesCache !== undefined) {
-            return Promise.resolve(this.cubesCache);
-        }
-        else {
-            const server = this.api_base;
-            const cubeBuilder = Cube.fromJSON.bind(Cube, this.key);
-            const p = axios.get(urljoin(server, 'cubes')).then(rsp => {
-                return rsp.data['cubes'].map(cubeBuilder);
-            });
-            this.cubesCache = p;
-            return p;
-        }
-    }
-
-    cube(name: string): Promise<Cube> {
-        if (this.cubesCache) {
-            return Promise.resolve(this.cubesCache).then(cubes =>
-                cubes.find(cb => cb.name === name)
-            );
-        }
-        const key = this.key;
-        return axios.get(urljoin(this.api_base, 'cubes', name)).then(rsp =>
-            Cube.fromJSON(key, rsp.data)
-        );
-    }
-
-    query(query: Query, format: string = 'json', method: string = 'AUTO'): Promise<Aggregation> {
-        const queryPath = query.path(format);
-        let url = urljoin(this.api_base, queryPath),
-            reqOptions = {
-                url,
-                method: 'GET',
-                headers: {
-                    'Accept': FORMATS[format]
-                }
-            };
-
-        if (method == 'AUTO') {
-            method = url.length > MAX_GET_URI_LENGTH ? 'POST' : 'GET';
-        }
-        if (method == 'POST') {
-            reqOptions.url = queryPath.split('?', 1).shift();
-            reqOptions.method = 'POST';
-            reqOptions.headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
-            reqOptions['data'] = query.qs;
+  cube(cubeName: string): Promise<Cube> {
+    const url = urljoin(this.baseUrl, "cubes", cubeName);
+    const cubePromise =
+      this.cacheCube[cubeName] ||
+      axios.get(url).then((response: AxiosResponse<any>) => {
+        const protoCube = response.data;
+        if (typeof protoCube.name === "string") {
+          const cube = Cube.fromJSON(protoCube);
+          cube.server = this.baseUrl;
+          this.cacheCube[cube.name] = Promise.resolve(cube);
+          return cube;
         }
 
-        return axios(reqOptions).then(rsp => {
-            if (rsp.status > 199 && rsp.status < 300) {
-                return new Aggregation(rsp.data, url, query.options);
+        throw new ServerError(response);
+      });
+    this.cacheCube[cubeName] = cubePromise;
+    return cubePromise;
+  }
+
+  cubes(): Promise<Cube[]> {
+    const url = urljoin(this.baseUrl, "cubes");
+    const cubePromises =
+      this.cacheCubes ||
+      axios.get(url).then((response: AxiosResponse<any>) => {
+        const data = response.data;
+        if (Array.isArray(data.cubes)) {
+          const cubePromises = data.cubes.map((protoCube: any) => {
+            if (protoCube.name in this.cacheCube) {
+              return this.cacheCube[protoCube.name];
             }
-            throw new MondrianRestError(rsp);
-        });
-    }
-
-    members(level: Level, getChildren: boolean = false, caption: string = null): Promise<Member[]> {
-        const cube = level.hierarchy.dimension.cube;
-        const opts = {};
-        if (getChildren) opts['children'] = true;
-
-        if (caption !== null && !level.hasProperty(caption)) {
-            throw new Error(`Property ${caption} does not exist in level ${level.fullName}`);
-        }
-
-        if (caption !== null) opts['caption'] = caption;
-
-        return axios({
-            url: urljoin(this.api_base, 'cubes', cube.name, level.membersPath(this.legacy)),
-            params: opts
-        }).then(
-            rsp => rsp.data['members'].map(Member.fromJSON),
-            err => {
-                if (err.response.status === 404) {
-                    this.setLegacyServer();
-                    return this.members(level, getChildren, caption);
-                }
-                throw err;
+            else {
+              const cube = Cube.fromJSON(protoCube);
+              cube.server = this.baseUrl;
+              const cubePromise = Promise.resolve(cube);
+              this.cacheCube[cube.name] = cubePromise;
+              return cubePromise;
             }
-        );
-    }
-
-    member(level: Level, key: string, getChildren: boolean = false, caption: string = null): Promise<Member> {
-        const cube = level.hierarchy.dimension.cube;
-        const opts = {};
-
-        if (getChildren) opts['children'] = true;
-
-        if (caption !== null && !level.hasProperty(caption)) {
-            throw new Error(`Property ${caption} does not exist in level ${level.fullName}`);
+          });
+          return Promise.all(cubePromises);
         }
 
-        if (caption !== null) opts['caption'] = caption;
+        throw new ServerError(response);
+      });
+    this.cacheCubes = cubePromises;
+    return cubePromises;
+  }
 
-        let qs = formurlencoded(opts);
-        if (qs.length > 1) qs = '?' + qs;
+  execQuery(
+    query: Query,
+    format: AllowedFormat = AllowedFormat.jsonrecords,
+    method: string = "AUTO"
+  ): Promise<Aggregation> {
+    const url = query.getAggregateUrl(format);
 
-        return axios
-            .get(urljoin(this.api_base, 'cubes', cube.name, level.membersPath(true), key) + qs)
-            .then(rsp => Member.fromJSON(rsp.data));
+    if (method == "AUTO") {
+      method = url.length > MAX_GET_URI_LENGTH ? "POST" : "GET";
     }
+
+    const headers: any = {Accept: FORMATS[format]};
+    const request: any = {url, method, headers};
+    if (method == "POST") {
+      headers["Content-Type"] = "application/x-www-form-urlencoded; charset=utf-8";
+      const splitter = url.indexOf("?");
+      request.data = url.substr(splitter + 1);
+      request.method = "POST";
+      request.url = url.substr(0, splitter);
+    }
+
+    return axios(request).then((response: AxiosResponse<any>) => {
+      if (response.status > 199 && response.status < 300) {
+        return {
+          data: response.data.data,
+          url,
+          options: query.getOptions()
+        };
+      }
+      throw new ServerError(response);
+    });
+  }
+
+  member(
+    level: Level,
+    key: string,
+    getChildren: boolean = false,
+    caption: string = null
+  ): Promise<Member> {
+    // TODO: Check this after implementing checkStatus()
+    const legacyServer = this.serverVersion.startsWith("0.");
+    const url: string = urljoin(
+      level.cube.toString(),
+      `/dimensions/${level.dimension.name}`,
+      legacyServer ? "/" : `/hierarchies/${level.hierarchy.name}`,
+      `/levels/${level.name}`,
+      "/members",
+      key
+    );
+    const params: any = {};
+
+    if (getChildren) params["children"] = true;
+
+    if (caption !== null && !level.hasProperty(caption)) {
+      throw new Error(`Property ${caption} does not exist in level ${level.fullname}`);
+    }
+
+    if (caption !== null) params["caption"] = caption;
+
+    return axios({url, params}).then((response: AxiosResponse<any>) => {
+      const member = Member.fromJSON(response.data);
+      member.level = level;
+      return member;
+    });
+  }
+
+  members(
+    level: Level,
+    getChildren: boolean = false,
+    caption: string = null
+  ): Promise<Member[]> {
+    // TODO: Check this after implementing checkStatus()
+    const legacyServer = this.serverVersion.startsWith("0.");
+    const url: string = urljoin(
+      level.cube.toString(),
+      `/dimensions/${level.dimension.name}`,
+      legacyServer ? "/" : `/hierarchies/${level.hierarchy.name}`,
+      `/levels/${level.name}`,
+      "/members"
+    );
+    const params: any = {};
+
+    if (getChildren) {
+      params["children"] = true;
+    }
+
+    if (caption) {
+      if (!level.hasProperty(caption)) {
+        throw new ClientError(`Property ${caption} does not exist in level ${level.fullname}`);
+      }
+      params["caption"] = caption;
+    }
+
+    return axios({url, params}).then((response: AxiosResponse<any>) =>
+      response.data["members"].map((protoMember: any) => {
+        const member = Member.fromJSON(protoMember);
+        member.level = level;
+        return member;
+      })
+    );
+  }
+
+  toString(): string {
+    return this.baseUrl;
+  }
 }
+
+export default Client;

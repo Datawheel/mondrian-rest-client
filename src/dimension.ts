@@ -1,132 +1,139 @@
-import { Annotations } from './annotations';
-import Cube from './cube';
+import urljoin from "url-join";
+import {DimensionType} from "./common";
+import Cube from "./cube";
+import {ClientError} from "./errors";
+import Hierarchy from "./hierarchy";
+import {Annotated, Annotations, CubeChild, Named, Serializable} from "./interfaces";
+import Level from "./level";
 
-const INTRINSIC_PROPERTIES = [
-    'Caption',
-    'Key',
-    'Name',
-    'UniqueName'
-];
+class Dimension implements Annotated, CubeChild, Named, Serializable {
+  public annotations: Annotations = {};
+  public caption?: string;
+  public cube: Cube;
+  public dimensionType: DimensionType;
+  public hierarchies: Hierarchy[];
+  public name: string;
 
-export class Level {
-    name: string;
-    caption?: string;
-    fullName: string;
-    depth: number;
-    annotations: Annotations = {};
-    properties: string[];
-    hierarchy: Hierarchy;
+  private readonly isDimension: boolean = true;
 
-    constructor(name: string, caption: string, fullName: string,
-        depth: number, annotations: Annotations, properties: string[]) {
-        this.name = name;
-        this.caption = caption;
-        this.fullName = fullName;
-        this.depth = depth;
-        this.annotations = annotations;
-        this.properties = properties;
+  constructor(
+    name: string,
+    annotations: Annotations,
+    dimensionType: DimensionType,
+    hierarchies: Hierarchy[],
+    caption: string
+  ) {
+    this.annotations = annotations || {};
+    this.caption = caption;
+    this.dimensionType = dimensionType;
+    this.hierarchies = hierarchies;
+    this.name = name;
+
+    hierarchies.forEach(hie => {
+      hie.dimension = this;
+    });
+  }
+
+  static fromJSON(json: any): Dimension {
+    return new Dimension(
+      json["name"],
+      json["annotations"],
+      Dimension.typeFromString(json["type"]),
+      json["hierarchies"].map(Hierarchy.fromJSON),
+      json["caption"]
+    );
+  }
+
+  static isDimension(obj: any): obj is Dimension {
+    return Boolean(obj && obj.isDimension);
+  }
+
+  static timeType = DimensionType.Time;
+  static standardType = DimensionType.Standard;
+
+  static typeFromString(value: string): DimensionType {
+    switch (value) {
+      case "time":
+        return DimensionType.Time;
+
+      case "standard":
+        return DimensionType.Standard;
+
+      default:
+        throw new TypeError(`${value} is not a valid Dimension type`);
     }
+  }
 
-    static fromJSON(json: {}): Level {
-        const l = new Level(json['name'],
-            json['caption'],
-            json['full_name'],
-            json['depth'],
-            json['annotations'],
-            json['properties']);
-        return l;
+  static typeToString(dimensionType: DimensionType): string {
+    switch (dimensionType) {
+      case DimensionType.Standard:
+        return "standard";
+
+      case DimensionType.Time:
+        return "time";
+
+      default:
+        throw new TypeError(`${dimensionType} is not a valid DimensionType`);
     }
+  }
 
-    hasProperty(propertyName: string): boolean {
-        return this.properties.indexOf(propertyName) > -1
-            || INTRINSIC_PROPERTIES.indexOf(propertyName) > -1;
+  get defaultHierarchy(): string {
+    return this.hierarchies[0].name;
+  }
+
+  get fullname(): string {
+    return `[${this.name}]`;
+  }
+
+  findHierarchy(hierarchyName: string, elseFirst?: boolean): Hierarchy {
+    const hierarchies = this.hierarchies;
+    const count = hierarchies.length;
+    for (let i = 0; i < count; i++) {
+      if (hierarchies[i].name === hierarchyName) {
+        return hierarchies[i];
+      }
     }
+    return elseFirst === true ? hierarchies[0] : null;
+  }
 
-    membersPath(legacy?: boolean): string {
-        if (legacy) {
-            return `/dimensions/${this.hierarchy.dimension.name}/levels/${this.name}/members`;
-        }
-        return `/dimensions/${this.hierarchy.dimension.name}/hierarchies/${this.hierarchy.name}/levels/${this.name}/members`;
-    }
-}
-
-export class Hierarchy {
-    name: string;
-    allMemberName: string;
-    levels: Level[];
-    dimension: Dimension;
-
-    constructor(name: string, allMemberName: string, levels: Level[]) {
-        this.name = name;
-        this.allMemberName = allMemberName;
-        this.levels = levels.map((l) => Object.assign(l, { hierarchy: this }));
-    }
-
-    static fromJSON(json: {}): Hierarchy {
-        const h = new Hierarchy(json['name'],
-            json['all_member_name'],
-            json['levels'].map(Level.fromJSON))
-        return h;
-    }
-
-    getLevel(levelName: string) {
-        const level = this.levels.find((l) => l.name === levelName)
-        if (level === undefined) {
-            throw new Error(`${levelName} does not exist in hierarchy ${this.name}`);
-        }
+  findLevel(levelName: string, elseFirst?: boolean): Level {
+    const hierarchies = this.hierarchies;
+    const count = hierarchies.length;
+    for (let i = 0; i < count; i++) {
+      const level = hierarchies[i].findLevel(levelName);
+      if (level) {
         return level;
+      }
     }
+    return elseFirst === true ? hierarchies[0].levels[1] : null;
+  }
+
+  getAnnotation(key: string, defaultValue?: string): string {
+    if (key in this.annotations) {
+      return this.annotations[key];
+    }
+    if (defaultValue === undefined) {
+      throw new ClientError(`Annotation ${key} does not exist in dimension ${this.name}.`);
+    }
+    return defaultValue;
+  }
+
+  toJSON(): any {
+    const serialize = (obj: Serializable) => obj.toJSON();
+    return {
+      annotations: this.annotations,
+      caption: this.caption,
+      fullname: this.fullname,
+      hierarchies: this.hierarchies.map(serialize),
+      name: this.name,
+      type: Dimension.typeToString(this.dimensionType),
+      uri: this.toString()
+    };
+  }
+
+  toString(): string {
+    return urljoin(this.cube.toString(), "dimensions", encodeURIComponent(this.name));
+  }
 }
 
-export enum DimensionType {
-    Standard,
-    Time
-}
-
-export default class Dimension {
-    name: string;
-    caption: string;
-    dimensionType: DimensionType;
-    annotations: Annotations;
-    hierarchies: Hierarchy[];
-    cube: Cube;
-
-    constructor(name: string,
-        caption: string | null,
-        dimensionType: string,
-        hierarchies: Hierarchy[],
-        annotations: Annotations | null) {
-
-        this.name = name;
-        this.caption = caption;
-        switch (dimensionType) {
-            case 'time':
-                this.dimensionType = DimensionType.Time;
-                break;
-            case 'standard':
-                this.dimensionType = DimensionType.Standard;
-                break;
-            default:
-                throw new TypeError(`${dimensionType} is not a valid DimensionType`)
-        }
-        this.hierarchies = hierarchies.map((h) => Object.assign(h, { dimension: this }));
-        this.annotations = annotations;
-    }
-
-    static fromJSON(json: {}): Dimension {
-        const d: Dimension = new Dimension(json['name'],
-            json['caption'],
-            json['type'],
-            json['hierarchies'].map(Hierarchy.fromJSON),
-            json['annotations']);
-        return d;
-    }
-
-    getHierarchy(hierarchyName: string) {
-        const hierarchy = this.hierarchies.find((h) => h.name === hierarchyName)
-        if (hierarchy === undefined) {
-            throw new Error(`${hierarchyName} does not exist in dimension ${this.name}`);
-        }
-        return hierarchy;
-    }
-}
+export default Dimension;

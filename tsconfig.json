@@ -1,18 +1,17 @@
 {
-    "compilerOptions": {
-      "declaration": true,
-      "declarationDir": "lib/types",
-      "forceConsistentCasingInFileNames": true,
-      "module": "commonjs",
-      "noFallthroughCasesInSwitch": true,
-      "noImplicitReturns": true,
-      "outDir": "build/src",
-      "noImplicitAny": false,
-      "removeComments": false,
-      "sourceMap": true,
-      "target": "es6"
-    },
-    "include": [
-      "src/**/*"
-    ]
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "declarationDir": "./types",
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "removeComments": false,
+    "sourceMap": true,
+    "target": "es6"
+  },
+  "include": [
+    "src/**/*"
+  ]
 }

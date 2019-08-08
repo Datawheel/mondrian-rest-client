@@ -1,97 +1,245 @@
-import { unique } from 'shorthash';
+import urljoin from "url-join";
+import {DimensionType, splitFullname} from "./common";
+import Dimension from "./dimension";
+import {ClientError} from "./errors";
+import {Annotated, Annotations, CubeChild, Named, Serializable} from "./interfaces";
+import Level from "./level";
+import Measure from "./measure";
+import NamedSet from "./namedset";
+import Query from "./query";
 
-import Measure from './measure';
-import Dimension, { DimensionType } from './dimension';
-import { Annotations } from './annotations';
-import NamedSet from './namedSet';
-import Query from './query';
+class Cube implements Annotated, Named, Serializable {
+  public annotations: Annotations = {};
+  public dimensions: Dimension[];
+  public dimensionsByName: {[name: string]: Dimension} = {};
+  public measures: Measure[];
+  public measuresByName: {[name: string]: Measure} = {};
+  public name: string;
+  public namedsets: NamedSet[];
+  public namedsetsByName: {[name: string]: NamedSet} = {};
+  public server: string = "/";
 
-export default class Cube {
-    clientKey : string;
-    key: string;
-    name: string;
-    caption: string;
-    dimensions: Dimension[];
-    namedSets: NamedSet[];
-    measures: Measure[];
-    annotations: Annotations = {};
+  private readonly isCube: boolean = true;
 
-    dimensionsByName: { [d: string]: Dimension };
+  constructor(
+    name: string,
+    annotations: Annotations,
+    dimensions: Dimension[],
+    measures: Measure[],
+    namedsets: NamedSet[]
+  ) {
+    this.annotations = annotations || {};
+    this.dimensions = dimensions;
+    this.measures = measures;
+    this.name = name;
+    this.namedsets = namedsets;
 
-    constructor(clientKey: string,
-                name: string,
-                dimensions: Dimension[],
-                namedSets: NamedSet[],
-                measures: Measure[],
-                annotations: Annotations) {
+    dimensions.forEach(dim => {
+      dim.cube = this;
+      this.dimensionsByName[dim.name] = dim;
+    });
+    measures.forEach(msr => {
+      msr.cube = this;
+      this.measuresByName[msr.name] = msr;
+    });
+    namedsets.forEach(nst => {
+      this.namedsetsByName[nst.name] = nst;
+    });
+  }
 
-        this.clientKey = clientKey;
-        this.key = unique(`${clientKey} ${name}`);
-        this.name = name;
-        this.caption = this.annotations['caption'] || name;
-        this.measures = measures;
-        this.dimensions = dimensions.map((d) => Object.assign(d, { cube: this }));
-        this.namedSets = namedSets;
-        this.annotations = annotations;
+  static fromJSON(json: any): Cube {
+    const dimensions: Dimension[] = json["dimensions"].map(Dimension.fromJSON);
+    const namedSets = (json["named_sets"] || []).map((ns: any) => {
+      const namedSet = NamedSet.fromJSON(ns);
+      const dim = dimensions.find(d => d.name == ns.dimension);
+      const hie = dim.findHierarchy(ns.hierarchy);
+      namedSet.level = hie.findLevel(ns.level);
+      return namedSet;
+    });
 
-        this.dimensionsByName = this.dimensions.reduce((m: {}, d: Dimension): {} => {
-            m[d.name] = d;
-            return m;
-        }, {});
+    return new Cube(
+      json["name"],
+      json["annotations"],
+      dimensions,
+      json["measures"].map(Measure.fromJSON),
+      namedSets
+    );
+  }
+
+  static isCube(obj: any): obj is Cube {
+    return Boolean(obj && obj.isCube);
+  }
+
+  get caption(): string {
+    return this.annotations.caption || this.name;
+  }
+
+  get defaultMeasure(): Measure {
+    // TODO: verify this is the way this annotation works
+    return this.measures.find(m => m.annotations["default"]) || this.measures[0];
+  }
+
+  get fullname(): string {
+    return this.name;
+  }
+
+  get query(): Query {
+    return new Query(this);
+  }
+
+  get standardDimensions(): Dimension[] {
+    return this.findDimensionsByType(DimensionType.Standard);
+  }
+
+  get timeDimension(): Dimension {
+    return this.dimensions.find(
+      d => d.dimensionType === DimensionType.Time || d.annotations.dim_type === "TIME"
+    );
+  }
+
+  get geoDimension(): Dimension {
+    return this.dimensions.find(d => d.annotations.dim_type === "GEOGRAPHY");
+  }
+
+  findDimensionsByType(type: DimensionType): Dimension[] {
+    return this.dimensions.filter(d => d.dimensionType === type);
+  }
+
+  findLevel(levelName: string, elseFirst?: boolean): Level {
+    const dimensions = this.dimensions;
+    const count = dimensions.length;
+    for (let i = 0; i < count; i++) {
+      const level = dimensions[i].findLevel(levelName);
+      if (level) {
+        return level;
+      }
+    }
+    return elseFirst === true ? dimensions[0].hierarchies[0].levels[1] : null;
+  }
+
+  getAnnotation(key: string, defaultValue?: string): string {
+    if (key in this.annotations) {
+      return this.annotations[key];
+    }
+    if (defaultValue === undefined) {
+      throw new ClientError(`Annotation ${key} does not exist in cube ${this.name}.`);
+    }
+    return defaultValue;
+  }
+
+  getDimension(dimIdentifier: string | Dimension): Dimension {
+    const dimension = Dimension.isDimension(dimIdentifier)
+      ? dimIdentifier
+      : this.dimensionsByName[dimIdentifier];
+
+    if (!Dimension.isDimension(dimension)) {
+      throw new ClientError(`Object ${dimIdentifier} is not a valid dimension identifier`);
     }
 
-    static fromJSON(clientKey: string, json: any): Cube {
-        if (!json['named_sets']) json['named_sets'] = [];
+    return this.verifyOwnership(dimension);
+  }
 
-        const dimensions: Dimension[] = json['dimensions'].map(Dimension.fromJSON);
+  getLevel(lvlIdentifier: string | string[] | Level): Level {
+    const level = Level.isLevel(lvlIdentifier)
+      ? lvlIdentifier
+      : this.queryFullname(lvlIdentifier);
 
-        return new Cube(clientKey,
-                        json['name'],
-                        dimensions,
-                        json['named_sets'].map(ns => {
-                            return new NamedSet(ns['name'],
-                                                dimensions
-                                                  .find(d => d.name == ns['dimension'])
-                                                  .getHierarchy(ns['hierarchy'])
-                                                  .getLevel(ns['level']),
-                                                ns['annotations']);
-                        }),
-                        json['measures'].map(Measure.fromJSON),
-                        json['annotations']);
+    if (!Level.isLevel(level)) {
+      throw new ClientError(`Object ${level} is not a valid level, found using ${lvlIdentifier}`);
     }
 
-    get standardDimensions(): Dimension[] {
-        return this.dimensions.filter((d) => d.dimensionType === DimensionType.Standard);
+    return this.verifyOwnership(level);
+  }
+
+  getMeasure(msrIdentifier: string | Measure): Measure {
+    const measure = Measure.isMeasure(msrIdentifier)
+      ? msrIdentifier
+      : this.measuresByName[msrIdentifier];
+
+    if (!Measure.isMeasure(measure)) {
+      throw new ClientError(`Object ${msrIdentifier} is not a valid measure identifier`);
     }
 
+    return this.verifyOwnership(measure);
+  }
 
-    get timeDimension(): Dimension {
-        const tds = this.dimensions.filter((d) => d.dimensionType === DimensionType.Time);
-        return tds.length > 0 ? tds[0] : null;
+  getNamedSet(nstIdentifier: string | NamedSet): NamedSet {
+    const namedset = NamedSet.isNamedset(nstIdentifier)
+      ? nstIdentifier
+      : this.namedsetsByName[nstIdentifier];
+
+    if (!NamedSet.isNamedset(namedset)) {
+      throw new ClientError(`Object ${nstIdentifier} is not a valid namedset identifier`);
     }
 
-    get defaultMeasure(): Measure {
-        const dm = this.measures.filter((m) => m.annotations['default']);
-        return dm.length > 0 ? dm[0] : this.measures[0];
-    }
+    return this.verifyOwnership(namedset);
+  }
 
-    findMeasure(measureName: string): Measure {
-        const ms = this.measures.filter((m) => m.name === measureName);
-        if (ms.length === 0) {
-            throw new Error(`Measure ${measureName} does not exist in cube ${this.name}`);
+  queryFullname(fullname: string | string[]): any {
+    const nameParts =
+      typeof fullname === "string" ? splitFullname(fullname) : fullname.slice();
+
+    const name = nameParts[0];
+    if (name === "Measures") {
+      return this.measuresByName[nameParts[1]];
+    }
+    if (nameParts.length === 1) {
+      if (name in this.measuresByName) {
+        return this.measuresByName[name];
+      }
+      else if (name in this.dimensionsByName) {
+        return this.dimensionsByName[name];
+      }
+      else if (name in this.namedsetsByName) {
+        return this.namedsetsByName[name];
+      }
+    }
+    else {
+      const dimName = nameParts.shift();
+      const dimension = this.dimensionsByName[dimName];
+
+      if (dimension) {
+        const hieName = nameParts.shift();
+        const hierarchy = dimension.findHierarchy(hieName) || dimension.findHierarchy(dimName);
+
+        if (hierarchy) {
+          if (hierarchy.name !== hieName) {}
+          const lvlName = nameParts.shift() || hieName;
+          const level = hierarchy.findLevel(lvlName);
+
+          if (level) {
+            const nstName = nameParts.shift();
+            return this.namedsetsByName[nstName] || level;
+          }
+          return hierarchy;
         }
-        return ms[0];
+        return dimension;
+      }
     }
+  }
 
-    findNamedSet(namedSetName: string): NamedSet {
-        const ns = this.namedSets.find(ns => ns.name === namedSetName);
-        if (ns === undefined) {
-            throw new Error(`NamedSet ${namedSetName} does not exist in cube ${this.name}`);
-        }
-        return ns;
-    }
+  toJSON(): any {
+    const serialize = (obj: Serializable) => obj.toJSON();
+    return {
+      annotations: this.annotations,
+      dimensions: this.dimensions.map(serialize),
+      measures: this.measures.map(serialize),
+      name: this.name,
+      namedsets: this.namedsets.map(serialize),
+      uri: this.toString()
+    };
+  }
 
-    get query(): Query {
-        return new Query(this);
+  toString(): string {
+    return urljoin(this.server, "cubes", encodeURIComponent(this.name));
+  }
+
+  private verifyOwnership<T extends CubeChild>(obj: T): T {
+    if (!obj || obj.cube !== this) {
+      throw new ClientError(`Object ${obj} does not belong to cube ${this.name}`);
     }
+    return obj;
+  }
 }
+
+export default Cube;
