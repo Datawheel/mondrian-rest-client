@@ -1,11 +1,11 @@
+import {execSync} from "child_process";
 import babel from "rollup-plugin-babel";
 import cleanup from "rollup-plugin-cleanup";
 import commonjs from "rollup-plugin-commonjs";
+import license from "rollup-plugin-license";
 import resolve from "rollup-plugin-node-resolve";
 import replace from "rollup-plugin-replace";
-import license from "rollup-plugin-license";
 import typescript from "rollup-plugin-typescript2";
-import {execSync} from 'child_process';
 import pkg from "./package.json";
 
 const environment = process.env.NODE_ENV;
@@ -13,9 +13,8 @@ const inDevelopment = environment === "development";
 const inProduction = environment === "production";
 
 const sourcemap = inDevelopment ? "inline" : false;
-const LICENSE_HEADER =
-`${pkg.name} ${pkg.version} (${pkg.homepage})
-rev ${execSync('git rev-parse --short HEAD')}
+const LICENSE_HEADER = `${pkg.name} ${pkg.version} (${pkg.homepage})
+rev ${execSync("git rev-parse --short HEAD")}
 Copyright 2019 Datawheel, LLC
 Licensed under MIT`;
 
@@ -41,7 +40,7 @@ export default commandLineArgs => {
     plugins: [
       replace({
         ENVIRONMENT: JSON.stringify(environment),
-        "__VERSION__": JSON.stringify(pkg.version)
+        __VERSION__: JSON.stringify(pkg.version)
       }),
       resolve({
         extensions: [".mjs", ".js", ".jsx", ".ts", ".tsx"],
@@ -51,8 +50,9 @@ export default commandLineArgs => {
         exclude: "node_modules/**"
       }),
       typescript({
+        clean: true,
         rollupCommonJSResolveHack: true,
-        clean: true
+        useTsconfigDeclarationDir: true
       }),
       commonjs({
         include: ["node_modules/**"]
