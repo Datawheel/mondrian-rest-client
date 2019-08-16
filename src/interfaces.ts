@@ -47,6 +47,7 @@ export interface Serializable {
 }
 
 export interface ServerStatus {
+  software: string;
   status: string;
   url: string;
   version: string;

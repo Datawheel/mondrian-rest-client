@@ -12,6 +12,7 @@ class Client {
   public annotations: Annotations = {};
   public baseUrl: string = "";
   public serverOnline: string = "";
+  public serverSoftware: string = "mondrian";
   public serverVersion: string = "";
 
   private cacheCube: {[key: string]: Promise<Cube>} = {};
@@ -30,6 +31,7 @@ class Client {
         this.serverOnline = "ok";
         this.serverVersion = "";
         return {
+          software: this.serverSoftware,
           status: this.serverOnline,
           url: this.baseUrl,
           version: this.serverVersion
