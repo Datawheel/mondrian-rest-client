@@ -29,8 +29,8 @@ export enum AllowedOrder {
 }
 
 export enum DimensionType {
-  Standard,
-  Time
+  Standard = "std",
+  Time = "time"
 }
 
 export function joinFullname(nameParts: string[]): string {
