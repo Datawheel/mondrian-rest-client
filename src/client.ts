@@ -114,8 +114,9 @@ class Client {
 
     return axios(request).then((response: AxiosResponse<any>) => {
       if (response.status > 199 && response.status < 300) {
+        const aggregation = response.data;
         return {
-          data: response.data.data,
+          data: "data" in aggregation ? aggregation.data : aggregation,
           url,
           options: query.getOptions()
         };
