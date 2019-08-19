@@ -6,12 +6,6 @@ export interface Aggregation {
   options: QueryOptions;
 }
 
-export interface Annotated {
-  annotations: Annotations;
-  getAnnotation(key: string, defaultValue?: string): string;
-  name: string;
-}
-
 export interface Annotations {
   [key: string]: string;
 }

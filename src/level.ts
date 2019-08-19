@@ -1,13 +1,13 @@
 import urljoin from "url-join";
 import Cube from "./cube";
 import Dimension from "./dimension";
-import {ClientError} from "./errors";
 import Hierarchy from "./hierarchy";
-import {Annotated, Annotations, Drillable, Property, Serializable} from "./interfaces";
+import {Annotations, Drillable, Property, Serializable} from "./interfaces";
+import {Annotated, applyMixins} from "./mixins";
 
 const INTRINSIC_PROPERTIES = ["Caption", "Key", "Name", "UniqueName"];
 
-class Level implements Annotated, Drillable, Serializable {
+class Level implements Drillable, Serializable {
   readonly annotations: Annotations = {};
   readonly caption?: string;
   readonly depth: number;
@@ -61,16 +61,6 @@ class Level implements Annotated, Drillable, Serializable {
     return this.hierarchy.fullnameParts.concat(this.name);
   }
 
-  getAnnotation(key: string, defaultValue?: string): string {
-    if (key in this.annotations) {
-      return this.annotations[key];
-    }
-    if (defaultValue === undefined) {
-      throw new ClientError(`Annotation ${key} does not exist in level ${this.fullname}.`);
-    }
-    return defaultValue;
-  }
-
   hasProperty(propertyName: string): boolean {
     return (
       INTRINSIC_PROPERTIES.indexOf(propertyName) > -1 ||
@@ -98,5 +88,9 @@ class Level implements Annotated, Drillable, Serializable {
     );
   }
 }
+
+interface Level extends Annotated {}
+
+applyMixins(Level, [Annotated]);
 
 export default Level;

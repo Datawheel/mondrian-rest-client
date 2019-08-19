@@ -8,7 +8,7 @@ import Member from "./member";
 import Query from "./query";
 
 class MultiClient {
-  private clients: {[server: string]: Client} = {};
+  readonly clients: {[server: string]: Client} = {};
 
   constructor(serverUrls: string[]) {
     const clients = this.clients;
@@ -80,5 +80,7 @@ class MultiClient {
     return client.members(level, getChildren, caption);
   }
 }
+
+interface MultiClient {}
 
 export default MultiClient;

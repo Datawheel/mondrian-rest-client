@@ -82,4 +82,6 @@ class Member implements Named, Serializable {
   }
 }
 
+interface Member {};
+
 export default Member;

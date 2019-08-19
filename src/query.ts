@@ -233,4 +233,6 @@ class Query implements CubeChild, Serializable {
   }
 }
 
+interface Query {}
+
 export default Query;

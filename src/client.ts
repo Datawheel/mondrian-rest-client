@@ -9,11 +9,11 @@ import Member from "./member";
 import Query from "./query";
 
 class Client {
-  public annotations: Annotations = {};
-  public baseUrl: string = "";
-  public serverOnline: string = "";
-  public serverSoftware: string = "mondrian";
-  public serverVersion: string = "";
+  annotations: Annotations = {};
+  baseUrl: string = "";
+  serverOnline: string = "";
+  serverSoftware: string = "mondrian";
+  serverVersion: string = "";
 
   private cacheCube: {[key: string]: Promise<Cube>} = {};
   private cacheCubes: Promise<Cube[]>;
@@ -198,5 +198,7 @@ class Client {
     return this.baseUrl;
   }
 }
+
+interface Client {}
 
 export default Client;

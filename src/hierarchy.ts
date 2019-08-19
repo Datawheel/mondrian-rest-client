@@ -1,11 +1,11 @@
 import urljoin from "url-join";
 import Cube from "./cube";
 import Dimension from "./dimension";
-import {ClientError} from "./errors";
-import {Annotated, Annotations, CubeChild, Named, Serializable} from "./interfaces";
+import {Annotations, CubeChild, Named, Serializable} from "./interfaces";
 import Level from "./level";
+import {Annotated, applyMixins} from "./mixins";
 
-class Hierarchy implements Annotated, CubeChild, Named, Serializable {
+class Hierarchy implements CubeChild, Named, Serializable {
   readonly allMemberName: string;
   readonly annotations: Annotations;
   dimension: Dimension;
@@ -65,16 +65,6 @@ class Hierarchy implements Annotated, CubeChild, Named, Serializable {
     return elseFirst === true ? levels[0] : null;
   }
 
-  getAnnotation(key: string, defaultValue?: string): string {
-    if (key in this.annotations) {
-      return this.annotations[key];
-    }
-    if (defaultValue === undefined) {
-      throw new ClientError(`Annotation ${key} does not exist in hierarchy ${this.fullname}.`);
-    }
-    return defaultValue;
-  }
-
   toJSON(): any {
     const serialize = (obj: Serializable) => obj.toJSON();
     return {
@@ -94,5 +84,9 @@ class Hierarchy implements Annotated, CubeChild, Named, Serializable {
     );
   }
 }
+
+interface Hierarchy extends Annotated {}
+
+applyMixins(Hierarchy, [Annotated]);
 
 export default Hierarchy;
