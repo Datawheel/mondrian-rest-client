@@ -58,6 +58,9 @@ class Dimension implements CubeChild, Named, Serializable {
       case "standard":
         return DimensionType.Standard;
 
+      case "geo":
+        return DimensionType.Geographic;
+
       default:
         throw new TypeError(`${value} is not a valid Dimension type`);
     }
@@ -70,6 +73,9 @@ class Dimension implements CubeChild, Named, Serializable {
 
       case DimensionType.Time:
         return "time";
+
+      case DimensionType.Geographic:
+        return "standard";
 
       default:
         throw new TypeError(`${dimensionType} is not a valid DimensionType`);

@@ -29,6 +29,7 @@ export enum AllowedOrder {
 }
 
 export enum DimensionType {
+  Geographic = "std",
   Standard = "std",
   Time = "time"
 }
