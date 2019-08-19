@@ -8,16 +8,15 @@ import {Annotated, Annotations, Drillable, Property, Serializable} from "./inter
 const INTRINSIC_PROPERTIES = ["Caption", "Key", "Name", "UniqueName"];
 
 class Level implements Annotated, Drillable, Serializable {
-  public annotations: Annotations = {};
-  public caption?: string;
-  public depth: number;
-  public fullname: string;
-  public hierarchy: Hierarchy;
-  public name: string;
-  public properties: Property[] = [];
-
-  public readonly isDrillable: boolean = true;
-  private readonly isLevel: boolean = true;
+  readonly annotations: Annotations = {};
+  readonly caption?: string;
+  readonly depth: number;
+  readonly fullname: string;
+  hierarchy: Hierarchy;
+  readonly isDrillable: boolean = true;
+  readonly isLevel: boolean = true;
+  readonly name: string;
+  readonly properties: Property[] = [];
 
   constructor(
     name: string,

@@ -7,14 +7,13 @@ import {Annotated, Annotations, CubeChild, Named, Serializable} from "./interfac
 import Level from "./level";
 
 class Dimension implements Annotated, CubeChild, Named, Serializable {
-  public annotations: Annotations = {};
-  public caption?: string;
-  public cube: Cube;
-  public dimensionType: DimensionType;
-  public hierarchies: Hierarchy[];
-  public name: string;
-
-  private readonly isDimension: boolean = true;
+  readonly annotations: Annotations = {};
+  readonly caption?: string;
+  cube: Cube;
+  readonly dimensionType: DimensionType;
+  readonly hierarchies: Hierarchy[];
+  readonly isDimension: boolean = true;
+  readonly name: string;
 
   constructor(
     name: string,

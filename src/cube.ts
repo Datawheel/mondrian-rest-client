@@ -9,17 +9,16 @@ import NamedSet from "./namedset";
 import Query from "./query";
 
 class Cube implements Annotated, Named, Serializable {
-  public annotations: Annotations = {};
-  public dimensions: Dimension[];
-  public dimensionsByName: {[name: string]: Dimension} = {};
-  public measures: Measure[];
-  public measuresByName: {[name: string]: Measure} = {};
-  public name: string;
-  public namedsets: NamedSet[];
-  public namedsetsByName: {[name: string]: NamedSet} = {};
-  public server: string = "/";
-
-  private readonly isCube: boolean = true;
+  readonly annotations: Annotations = {};
+  readonly dimensions: Dimension[];
+  readonly dimensionsByName: {[name: string]: Dimension} = {};
+  readonly isCube: boolean = true;
+  readonly measures: Measure[];
+  readonly measuresByName: {[name: string]: Measure} = {};
+  readonly name: string;
+  readonly namedsets: NamedSet[];
+  readonly namedsetsByName: {[name: string]: NamedSet} = {};
+  server: string = "/";
 
   constructor(
     name: string,
@@ -204,10 +203,10 @@ class Cube implements Annotated, Named, Serializable {
 
       if (dimension) {
         const hieName = nameParts.shift();
-        const hierarchy = dimension.findHierarchy(hieName) || dimension.findHierarchy(dimName);
+        const hierarchy =
+          dimension.findHierarchy(hieName) || dimension.findHierarchy(dimName);
 
         if (hierarchy) {
-          if (hierarchy.name !== hieName) {}
           const lvlName = nameParts.shift() || hieName;
           const level = hierarchy.findLevel(lvlName);
 

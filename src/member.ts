@@ -3,20 +3,19 @@ import {Named, Serializable} from "./interfaces";
 import Level from "./level";
 
 class Member implements Named, Serializable {
-  public allMember: boolean;
-  public ancestors: Member[];
-  public caption?: string;
-  public children: Member[];
-  public depth: number;
-  public drillable: boolean;
-  public fullname: string;
-  public key: string;
-  public level: Level;
-  public name: string;
-  public numChildren: number;
-  public parentName: string;
-
-  private readonly isMember: boolean = true;
+  readonly allMember: boolean;
+  readonly ancestors: Member[];
+  readonly caption?: string;
+  readonly children: Member[];
+  readonly depth: number;
+  readonly drillable: boolean;
+  readonly fullname: string;
+  readonly isMember: boolean = true;
+  readonly key: string;
+  level: Level;
+  readonly name: string;
+  readonly numChildren: number;
+  readonly parentName: string;
 
   constructor(
     key: string,

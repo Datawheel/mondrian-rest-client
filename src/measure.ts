@@ -5,14 +5,13 @@ import {ClientError} from "./errors";
 import {Annotated, Annotations, CubeChild, Named, Serializable} from "./interfaces";
 
 class Measure implements Annotated, CubeChild, Named, Serializable {
-  public aggregatorType: AggregatorType;
-  public annotations: Annotations = {};
-  public caption?: string;
-  public cube: Cube;
-  public fullname: string;
-  public name: string;
-
-  private readonly isMeasure: boolean = true;
+  readonly aggregatorType: AggregatorType;
+  readonly annotations: Annotations = {};
+  readonly caption?: string;
+  cube: Cube;
+  readonly fullname: string;
+  readonly isMeasure: boolean = true;
+  readonly name: string;
 
   constructor(
     name: string,
