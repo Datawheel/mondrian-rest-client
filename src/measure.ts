@@ -42,6 +42,10 @@ class Measure implements Annotated, CubeChild, Named, Serializable {
     return Boolean(obj && obj.isMeasure);
   }
 
+  get fullnameParts(): string[] {
+    return ["Measures", this.name];
+  }
+
   getAnnotation(key: string, defaultValue?: string): string {
     if (key in this.annotations) {
       return this.annotations[key];

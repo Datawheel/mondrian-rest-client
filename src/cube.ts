@@ -87,6 +87,10 @@ class Cube implements Annotated, Named, Serializable {
     return new Query(this);
   }
 
+  get fullnameParts(): string[] {
+    return [this.name];
+  }
+
   get standardDimensions(): Dimension[] {
     return this.findDimensionsByType(DimensionType.Standard);
   }

@@ -27,6 +27,7 @@ export interface Drillable extends CubeChild, Named {
 export interface Named {
   name: string;
   fullname: string;
+  fullnameParts: string[];
 }
 
 export interface Property {

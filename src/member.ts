@@ -64,6 +64,10 @@ class Member implements Named, Serializable {
     return Boolean(obj && obj.isMember);
   }
 
+  get fullnameParts(): string[] {
+    return this.level.fullnameParts.concat(this.key);
+  }
+
   toJSON(): any {
     return {
       caption: this.caption,

@@ -80,7 +80,7 @@ class Query implements CubeChild, Serializable {
       drillable = this.cube.getLevel(cut);
     }
     else {
-      if (!/[^,{}]+\]\.&\[[^,{}]+/ig.test(cut)) {
+      if (!/[^,{}]+\]\.&\[[^,{}]+/gi.test(cut)) {
         throw new ClientError(`Invalid cut: ${cut}`);
       }
       const [parsedDrillable, parsedMembers] = parseCut(cut);

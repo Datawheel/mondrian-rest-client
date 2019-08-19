@@ -85,6 +85,10 @@ class Dimension implements Annotated, CubeChild, Named, Serializable {
     return `[${this.name}]`;
   }
 
+  get fullnameParts(): string[] {
+    return [this.name];
+  }
+
   findHierarchy(hierarchyName: string, elseFirst?: boolean): Hierarchy {
     const hierarchies = this.hierarchies;
     const count = hierarchies.length;

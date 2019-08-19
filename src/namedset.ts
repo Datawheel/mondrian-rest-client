@@ -32,6 +32,10 @@ class NamedSet implements Annotated, CubeChild, Named, Serializable {
     return `${this.level.fullname}.[${this.name}]`;
   }
 
+  get fullnameParts(): string[] {
+    return this.level.fullnameParts.concat(this.name);
+  }
+
   getAnnotation(key: string, defaultValue?: string): string {
     if (key in this.annotations) {
       return this.annotations[key];

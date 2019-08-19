@@ -51,6 +51,10 @@ class Hierarchy implements Annotated, CubeChild, Named, Serializable {
     return `${this.dimension.fullname}.[${this.name}]`;
   }
 
+  get fullnameParts(): string[] {
+    return this.dimension.fullnameParts.concat(this.name);
+  }
+
   findLevel(levelName: string, elseFirst?: boolean): Level {
     const levels = this.levels;
     const count = levels.length;
