@@ -1,6 +1,6 @@
 {
   "name": "mondrian-rest-client",
-  "version": "2.0.1",
+  "version": "2.0.3",
   "description": "A javascript client for mondrian-rest.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
