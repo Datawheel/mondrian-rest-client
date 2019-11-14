@@ -78,7 +78,7 @@ export default class Client {
             method = url.length > MAX_GET_URI_LENGTH ? 'POST' : 'GET';
         }
         if (method == 'POST') {
-            reqOptions.url = queryPath.split('?', 1).shift();
+            reqOptions.url = url.split('?', 1).shift();
             reqOptions.method = 'POST';
             reqOptions.headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
             reqOptions['data'] = query.qs;
